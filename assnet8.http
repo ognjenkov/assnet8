@@ -1,0 +1,6 @@
+@assnet8_HostAddress = http://localhost:5181
+
+GET {{assnet8_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
