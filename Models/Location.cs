@@ -1,0 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace assnet8.Models
+{
+    public class Location
+    {
+        public Guid Id { get; set; }
+        public string Registration { get; set; } = string.Empty;
+        public string Region { get; set; } = string.Empty;
+        public List<Municipality>? Municipalities { get; set; }
+        public List<Field>? Fields { get; set; }
+        public List<Listing>? Listings { get; set; }
+        public List<Organization>? Organizations { get; set; }
+    }
+}

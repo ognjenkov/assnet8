@@ -1,0 +1,25 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+
+namespace assnet8.Models
+{
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum TagType
+    {
+        Game,
+        Listing,
+        Service
+    }
+    public class Tag
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public TagType Type { get; set; }
+        public List<Game>? Games { get; set; }
+        public List<Listing>? Listings { get; set; }
+        public List<Service>? Services { get; set; }
+    }
+}
