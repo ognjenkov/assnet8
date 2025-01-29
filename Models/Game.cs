@@ -9,7 +9,7 @@ namespace assnet8.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Title { get; set; } = string.Empty;
-        public DateTime CreateDateTime { get; set; }
+        public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public DateTime StartDateTime { get; set; }
         public string? LengthTime { get; set; }
         public Guid OrganizationId { get; set; } // zavisi od organizacije

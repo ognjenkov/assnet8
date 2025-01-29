@@ -11,7 +11,7 @@ namespace assnet8.Models
         public string Url { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Extension { get; set; } = string.Empty;
-        public DateTime CreateDateTime { get; set; }
+        public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public Guid UserId { get; set; } //jedan prema vise zavisi od usera
         public Guid? GalleryId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
         public User? User { get; set; }

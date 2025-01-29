@@ -28,8 +28,8 @@ namespace assnet8.Models
     public class Listing
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public DateTime CreateDateTime { get; set; }
-        public DateTime RefreshDateTime { get; set; }
+        public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
+        public DateTime RefreshDateTime { get; set; } = DateTime.UtcNow;
         public ListingType Type { get; set; }
         public ListingCondition Condition { get; set; }
         public ListingStatus Status { get; set; }

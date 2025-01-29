@@ -14,7 +14,7 @@ namespace assnet8.Models
         public string Password { get; set; } = string.Empty;
         public string? GoogleUid { get; set; }
         public bool VerifiedEmail { get; set; } = false;
-        public DateTime CreateDateTime { get; set; }
+        public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public Guid? ProfileImageId { get; set; }
         public List<Gallery>? Galleries { get; set; }
         public List<Service>? Services { get; set; }

@@ -28,7 +28,76 @@ namespace assnet8.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            // Configure the TagType enum to be stored as a string
+            modelBuilder.Entity<Tag>()
+                .Property(t => t.Type)
+                .HasConversion(
+                    v => v.ToString(), // Convert enum to string when saving to the database
+                    v => (TagType)Enum.Parse(typeof(TagType), v) // Convert string back to enum when reading from the database
+                );
+            // Configure the ListingType enum to be stored as a string
+            modelBuilder.Entity<Listing>()
+                .Property(l => l.Type)
+                .HasConversion(
+                    v => v.ToString(), // Convert enum to string when saving to the database
+                    v => (ListingType)Enum.Parse(typeof(ListingType), v) // Convert string back to enum when reading from the database
+                );
+
+            // Configure the ListingCondition enum to be stored as a string
+            modelBuilder.Entity<Listing>()
+                .Property(l => l.Condition)
+                .HasConversion(
+                    v => v.ToString(), // Convert enum to string when saving to the database
+                    v => (ListingCondition)Enum.Parse(typeof(ListingCondition), v) // Convert string back to enum when reading from the database
+                );
+
+            // Configure the ListingStatus enum to be stored as a string
+            modelBuilder.Entity<Listing>()
+                .Property(l => l.Status)
+                .HasConversion(
+                    v => v.ToString(), // Convert enum to string when saving to the database
+                    v => (ListingStatus)Enum.Parse(typeof(ListingStatus), v) // Convert string back to enum when reading from the database
+                );
+            // Configure the TeamRole enum to be stored as a string
+            modelBuilder.Entity<Membership>()
+                .Property(m => m.TeamRole) // Assuming you have a Role property in Membership
+                .HasConversion(
+                    v => v.ToString(), // Convert enum to string when saving to the database
+                    v => (TeamRole)Enum.Parse(typeof(TeamRole), v) // Convert string back to enum when reading from the database
+                );
+
+
+            // Ensure UserId in Membership is unique (enforcing only one Membership per User)
+            modelBuilder.Entity<Membership>()
+                .HasIndex(m => m.UserId)
+                .IsUnique();  // Ensures uniqueness of UserId in Membership
+            // One-to-Many: User -> Images (Uploaded Images)
+            modelBuilder.Entity<Image>()
+                .HasOne(i => i.User)
+                .WithMany(u => u.UploadedImages)
+                .HasForeignKey(i => i.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // When user is deleted, their images are deleted
+
+            // One-to-One: User -> ProfileImage
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.ProfileImage)
+                .WithOne()
+                .HasForeignKey<User>(u => u.ProfileImageId)
+                .OnDelete(DeleteBehavior.SetNull); // If the profile image is deleted, User.ProfileImageId becomes NULL
+
+
+            modelBuilder.Entity<Service>()
+            .HasOne(s => s.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(s => s.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict); // Disable cascade delete
+
+            // Configure the Service -> Organization relationship
+            modelBuilder.Entity<Service>()
+                .HasOne(s => s.Organization)
+                .WithMany()
+                .HasForeignKey(s => s.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict); // Disable cascade delete
         }
     }
 }
