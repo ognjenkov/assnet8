@@ -18,12 +18,11 @@ namespace assnet8.Models
     }
     public class Membership
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public DateTime CreateDateTime { get; set; }
         public Guid UserId { get; set; }
-        public User? User { get; set; }
         public Guid TeamId { get; set; }
         public Team? Team { get; set; }
-        public List<TeamRole>? TeamRoles { get; set; }
-        public DateTime CreateDateTime { get; set; }
+        public User? User { get; set; }
     }
 }

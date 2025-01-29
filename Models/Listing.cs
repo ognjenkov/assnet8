@@ -27,7 +27,7 @@ namespace assnet8.Models
     }
     public class Listing
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public DateTime CreateDateTime { get; set; }
         public DateTime RefreshDateTime { get; set; }
         public ListingType Type { get; set; }
@@ -38,6 +38,7 @@ namespace assnet8.Models
         public string Price { get; set; } = string.Empty;
         public string ContactInfo { get; set; } = string.Empty;
         public Guid UserId { get; set; }
+        public Guid? GalleryId { get; set; }
         public Guid LocationId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)
         public Guid ThumbnailImageId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
         public User? User { get; set; }

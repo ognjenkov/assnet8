@@ -7,7 +7,7 @@ namespace assnet8.Models
 {
     public class Image
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string Url { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Extension { get; set; } = string.Empty;

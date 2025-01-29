@@ -7,12 +7,13 @@ namespace assnet8.Models
 {
     public class Service
     {
-        public Guid Id { get; set; }
-        public Guid OrganizationId { get; set; }
-        public Guid CreatedById { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public DateTime CreatedDateTime { get; set; }
+        public Guid OrganizationId { get; set; }
+        public Guid CreatedById { get; set; }
+        public Guid? GalleryId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
         public Guid? ThumbnailImageId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
         public Guid? LocationId { get; set; }
         public User? CreatedBy { get; set; }

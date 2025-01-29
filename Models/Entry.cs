@@ -7,7 +7,7 @@ namespace assnet8.Models
 {
     public class Entry
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public Guid UserId { get; set; } // jedan prema vise zato on pamti guid
         public DateTime CreateDateTime { get; set; }
         public int OpNumber { get; set; }

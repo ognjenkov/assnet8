@@ -7,7 +7,7 @@ namespace assnet8.Models
 {
     public class Game
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string Title { get; set; } = string.Empty;
         public DateTime CreateDateTime { get; set; }
         public DateTime StartDateTime { get; set; }
