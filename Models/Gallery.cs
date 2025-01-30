@@ -11,11 +11,12 @@ namespace assnet8.Models
         public string Title { get; set; } = string.Empty;
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public Guid UserId { get; set; }
+        public Guid TeamId { get; set; }
         public User? User { get; set; }
         public Field? Field { get; set; }
         public Listing? Listing { get; set; }
         public Service? Service { get; set; }
-        public List<Team>? Teams { get; set; }
+        public Team? Team { get; set; }
         public List<Image>? Images { get; set; }
     }
 }

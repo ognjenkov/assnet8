@@ -20,7 +20,7 @@ namespace assnet8.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
-        public TeamRole TeamRole { get; set; }
+        public TeamRole Role { get; set; }
         public Guid UserId { get; set; }
         public Guid TeamId { get; set; }
         public Team? Team { get; set; }
