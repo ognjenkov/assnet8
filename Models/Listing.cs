@@ -7,20 +7,23 @@ using System.Threading.Tasks;
 namespace assnet8.Models
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ListingCondition {
+    public enum ListingCondition
+    {
         New,
         Used,
         Damaged,
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ListingType {
+    public enum ListingType
+    {
         Selling,
         Buying,
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ListingStatus {
+    public enum ListingStatus
+    {
         Active,
         Inactive,
         Archived,
@@ -39,10 +42,10 @@ namespace assnet8.Models
         public string ContactInfo { get; set; } = string.Empty;
         public Guid UserId { get; set; }
         public Guid? GalleryId { get; set; }
-        public Guid LocationId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)
-        public Guid ThumbnailImageId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
+        public Guid? LocationId { get; set; } // Foreign key to Location
+        public Guid ThumbnailImageId { get; set; } // Foreign key to Image
         public User? User { get; set; }
-        public Image? ThumbnailImage { get; set; } // jedan prema jedan ali image zavisi od listinga tkd je tamo fk
+        public Image? ThumbnailImage { get; set; } // Navigation property to Image
         public List<Tag>? Tags { get; set; }
         public Gallery? Gallery { get; set; }
         public Location? Location { get; set; }

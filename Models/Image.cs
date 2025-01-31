@@ -12,9 +12,15 @@ namespace assnet8.Models
         public string Title { get; set; } = string.Empty;
         public string Extension { get; set; } = string.Empty;
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
-        public Guid UserId { get; set; } //jedan prema vise zavisi od usera
-        public Guid? GalleryId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
-        public User? User { get; set; }
+        public Guid UserId { get; set; } // Foreign key to User
+        public Guid? GalleryId { get; set; } // Foreign key to Gallery
+
+        // Navigation property for ProfileImage (one-to-one)
+        public User? ProfileImageUser { get; set; }
+
+        // Navigation property for UploadedImages (one-to-many)
+        public User? UploadedImagesUser { get; set; }
+
         public Gallery? Gallery { get; set; }
         public Field? Field { get; set; }
         public Listing? Listing { get; set; }

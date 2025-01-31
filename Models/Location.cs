@@ -14,5 +14,7 @@ namespace assnet8.Models
         public List<Field>? Fields { get; set; }
         public List<Listing>? Listings { get; set; }
         public List<Organization>? Organizations { get; set; }
+        public List<Service>? Services { get; set; }
+        public List<Team>? Teams { get; set; }
     }
 }

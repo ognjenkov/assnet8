@@ -17,7 +17,7 @@ namespace assnet8.Models
         public Guid? ThumbnailImageId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
         public Guid? LocationId { get; set; }
         public User? CreatedByUser { get; set; }
-        public List<Gallery>? Galleries { get; set; }
+        public Gallery? Gallery { get; set; }
         public Image? ThumbnailImage { get; set; }
         public List<Tag>? Tags { get; set; }
         public Organization? Organization { get; set; }

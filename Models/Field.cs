@@ -10,7 +10,7 @@ namespace assnet8.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;
         public string GoogleMapsLink { get; set; } = string.Empty;
-        public Guid LocationId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)
+        public Guid? LocationId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)
         public Guid? GalleryId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)
         public Guid OrganizationId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)
         public Guid? ThumbnailImageId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
