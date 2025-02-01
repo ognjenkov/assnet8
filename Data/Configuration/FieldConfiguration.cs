@@ -11,24 +11,27 @@ namespace assnet8.Data.Configuration
         public void Configure(EntityTypeBuilder<Field> builder)
         {
             builder.HasIndex(l => l.ThumbnailImageId).IsUnique();
+            builder.HasIndex(l => l.GalleryId).IsUnique();
 
-            // One-to-One: Thumbnail Image (Cascade delete when Field is deleted)
+            builder.HasOne(f => f.Location)
+                   .WithMany(l => l.Fields)
+                   .HasForeignKey(f => f.LocationId)
+                   .OnDelete(DeleteBehavior.SetNull);
+
             builder.HasOne(f => f.ThumbnailImage)
-                .WithOne(i => i.Field)
-                .HasForeignKey<Field>(f => f.ThumbnailImageId)
-                .OnDelete(DeleteBehavior.Cascade);  // Cascade delete the ThumbnailImage when Field is deleted
+                   .WithOne(i => i.Field)
+                   .HasForeignKey<Field>(f => f.ThumbnailImageId)
+                   .OnDelete(DeleteBehavior.NoAction);
 
-            // One-to-One: Gallery (Cascade delete when Field is deleted)
             builder.HasOne(f => f.Gallery)
-                .WithOne()
-                .HasForeignKey<Field>(f => f.GalleryId)
-                .OnDelete(DeleteBehavior.Cascade);  // Cascade delete the Gallery when Field is deleted
+                   .WithOne(g => g.Field)
+                   .HasForeignKey<Field>(f => f.GalleryId)
+                   .OnDelete(DeleteBehavior.SetNull);
 
-            // Many-to-Many: Games (Restrict delete if there are related Games)
-            builder.HasMany(f => f.Games)
-                .WithOne(g => g.Field)  // Each Game has exactly one Field
-                .HasForeignKey(g => g.FieldId)
-                .OnDelete(DeleteBehavior.Restrict);  // Prevent deletion of Field if associated with any Games
+            builder.HasOne(f => f.Organization)
+                   .WithMany(o => o.Fields)
+                   .HasForeignKey(f => f.OrganizationId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

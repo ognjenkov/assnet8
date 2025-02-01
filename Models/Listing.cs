@@ -43,7 +43,7 @@ namespace assnet8.Models
         public Guid UserId { get; set; }
         public Guid? GalleryId { get; set; }
         public Guid? LocationId { get; set; } // Foreign key to Location
-        public Guid ThumbnailImageId { get; set; } // Foreign key to Image
+        public Guid? ThumbnailImageId { get; set; } // Foreign key to Image
         public User? User { get; set; }
         public Image? ThumbnailImage { get; set; } // Navigation property to Image
         public List<Tag>? Tags { get; set; }

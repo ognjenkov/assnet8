@@ -34,12 +34,15 @@ namespace assnet8.Data
             modelBuilder.ApplyConfiguration(new GalleryConfiguration());
             modelBuilder.ApplyConfiguration(new GameConfiguration());
             modelBuilder.ApplyConfiguration(new ImageConfiguration());
-            modelBuilder.ApplyConfiguration(new ListingConfiguration());
-            modelBuilder.ApplyConfiguration(new LocationConfiguration());
             modelBuilder.ApplyConfiguration(new OrganizationConfiguration());
             modelBuilder.ApplyConfiguration(new ServiceConfiguration());
             modelBuilder.ApplyConfiguration(new TeamConfiguration());
             modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new EntryConfiguration());
+            modelBuilder.ApplyConfiguration(new MembershipConfiguration());
+            modelBuilder.ApplyConfiguration(new MunicipalityConfiguration());
+            modelBuilder.ApplyConfiguration(new ListingConfiguration());
+
 
             // Configure the TagType enum to be stored as a string
             modelBuilder.Entity<Tag>()
@@ -79,10 +82,6 @@ namespace assnet8.Data
                     v => (TeamRole)Enum.Parse(typeof(TeamRole), v) // Convert string back to enum when reading from the database
                 );
 
-            // Ensure UserId in Membership is unique (enforcing only one Membership per User)
-            modelBuilder.Entity<Membership>()
-                .HasIndex(m => m.UserId)
-                .IsUnique();  // Ensures uniqueness of UserId in Membership
 
         }
     }

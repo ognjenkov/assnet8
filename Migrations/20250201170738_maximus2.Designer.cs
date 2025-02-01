@@ -12,8 +12,8 @@ using assnet8.Data;
 namespace assnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250131235543_broj10")]
-    partial class broj10
+    [Migration("20250201170738_maximus2")]
+    partial class maximus2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -224,9 +224,6 @@ namespace assnet8.Migrations
                     b.Property<Guid?>("GalleryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ListingId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -241,8 +238,6 @@ namespace assnet8.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GalleryId");
-
-                    b.HasIndex("ListingId");
 
                     b.HasIndex("UserId");
 
@@ -287,7 +282,7 @@ namespace assnet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ThumbnailImageId")
+                    b.Property<Guid?>("ThumbnailImageId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Title")
@@ -310,7 +305,8 @@ namespace assnet8.Migrations
                     b.HasIndex("LocationId");
 
                     b.HasIndex("ThumbnailImageId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[ThumbnailImageId] IS NOT NULL");
 
                     b.HasIndex("UserId");
 
@@ -356,8 +352,6 @@ namespace assnet8.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("TeamId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -655,13 +649,13 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Organization", "Organization")
                         .WithMany("Fields")
                         .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("assnet8.Models.Image", "ThumbnailImage")
                         .WithOne("Field")
                         .HasForeignKey("assnet8.Models.Field", "ThumbnailImageId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Gallery");
 
@@ -677,13 +671,13 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Team", "Team")
                         .WithMany("Galleries")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("assnet8.Models.User", "User")
                         .WithMany("Galleries")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Team");
@@ -717,10 +711,6 @@ namespace assnet8.Migrations
                         .HasForeignKey("GalleryId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("assnet8.Models.Listing", "Listing")
-                        .WithMany()
-                        .HasForeignKey("ListingId");
-
                     b.HasOne("assnet8.Models.User", "UploadedImagesUser")
                         .WithMany("UploadedImages")
                         .HasForeignKey("UserId")
@@ -728,8 +718,6 @@ namespace assnet8.Migrations
                         .IsRequired();
 
                     b.Navigation("Gallery");
-
-                    b.Navigation("Listing");
 
                     b.Navigation("UploadedImagesUser");
                 });
@@ -739,7 +727,7 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Gallery", "Gallery")
                         .WithOne("Listing")
                         .HasForeignKey("assnet8.Models.Listing", "GalleryId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("assnet8.Models.Location", "Location")
                         .WithMany("Listings")
@@ -747,10 +735,9 @@ namespace assnet8.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("assnet8.Models.Image", "ThumbnailImage")
-                        .WithOne()
+                        .WithOne("Listing")
                         .HasForeignKey("assnet8.Models.Listing", "ThumbnailImageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("assnet8.Models.User", "User")
                         .WithMany("Listings")
@@ -771,7 +758,7 @@ namespace assnet8.Migrations
                 {
                     b.HasOne("assnet8.Models.Team", "Team")
                         .WithMany("Memberships")
-                        .HasForeignKey("TeamId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -806,7 +793,7 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Image", "LogoImage")
                         .WithOne("Organization")
                         .HasForeignKey("assnet8.Models.Organization", "LogoImageId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("assnet8.Models.Team", "Team")
                         .WithOne("Organization")
@@ -838,7 +825,7 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Gallery", "Gallery")
                         .WithOne("Service")
                         .HasForeignKey("assnet8.Models.Service", "GalleryId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("assnet8.Models.Location", "Location")
                         .WithMany("Services")
@@ -854,7 +841,7 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Image", "ThumbnailImage")
                         .WithOne("Service")
                         .HasForeignKey("assnet8.Models.Service", "ThumbnailImageId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("CreatedByUser");
 
@@ -883,7 +870,7 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Image", "LogoImage")
                         .WithOne("Team")
                         .HasForeignKey("assnet8.Models.Team", "LogoImageId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Creator");
 
@@ -897,7 +884,7 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Image", "ProfileImage")
                         .WithOne("ProfileImageUser")
                         .HasForeignKey("assnet8.Models.User", "ProfileImageId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("ProfileImage");
                 });
@@ -926,6 +913,8 @@ namespace assnet8.Migrations
             modelBuilder.Entity("assnet8.Models.Image", b =>
                 {
                     b.Navigation("Field");
+
+                    b.Navigation("Listing");
 
                     b.Navigation("Organization");
 
