@@ -8,8 +8,8 @@ namespace assnet8.Models
     public class Service
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public required string Title { get; set; }
+        public required string Description { get; set; }
         public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;
         public Guid OrganizationId { get; set; }
         public Guid CreatedByUserId { get; set; }

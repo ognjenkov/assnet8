@@ -8,9 +8,9 @@ namespace assnet8.Models
     public class Image
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Url { get; set; } = string.Empty;
-        public string Title { get; set; } = string.Empty;
-        public string Extension { get; set; } = string.Empty;
+        public required string Url { get; set; }
+        public required string Title { get; set; }
+        public required string Extension { get; set; }
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public Guid UserId { get; set; } // Foreign key to User
         public Guid? GalleryId { get; set; } // Foreign key to Gallery

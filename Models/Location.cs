@@ -8,8 +8,8 @@ namespace assnet8.Models
     public class Location
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Registration { get; set; } = string.Empty;
-        public string Region { get; set; } = string.Empty;
+        public required string Registration { get; set; }
+        public required string Region { get; set; }
         public List<Municipality>? Municipalities { get; set; }
         public List<Field>? Fields { get; set; }
         public List<Listing>? Listings { get; set; }

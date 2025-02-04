@@ -8,7 +8,7 @@ namespace assnet8.Models
     public class Organization
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = string.Empty;
+        public required string Name { get; set; }
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public Guid? LogoImageId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
         public Guid UserId { get; set; }  // Organization was created by this user

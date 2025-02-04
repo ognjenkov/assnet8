@@ -33,13 +33,13 @@ namespace assnet8.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public DateTime RefreshDateTime { get; set; } = DateTime.UtcNow;
-        public ListingType Type { get; set; }
-        public ListingCondition Condition { get; set; }
-        public ListingStatus Status { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string Price { get; set; } = string.Empty;
-        public string ContactInfo { get; set; } = string.Empty;
+        public required ListingType Type { get; set; }
+        public required ListingCondition Condition { get; set; }
+        public required ListingStatus Status { get; set; } = ListingStatus.Active;
+        public required string Title { get; set; }
+        public required string Description { get; set; }
+        public required string Price { get; set; }
+        public required string ContactInfo { get; set; }
         public Guid UserId { get; set; }
         public Guid? GalleryId { get; set; }
         public Guid? LocationId { get; set; } // Foreign key to Location

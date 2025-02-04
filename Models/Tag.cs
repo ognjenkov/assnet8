@@ -16,7 +16,7 @@ namespace assnet8.Models
     public class Tag
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = string.Empty;
+        public required string Name { get; set; }
         public TagType Type { get; set; }
         public List<Game>? Games { get; set; }
         public List<Listing>? Listings { get; set; }
