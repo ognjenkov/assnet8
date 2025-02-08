@@ -10,9 +10,10 @@ namespace assnet8.Dtos.Auth
     {
         public required string Username { get; set; }
         public Image? ProfileImage { get; set; }
-        public TeamRole? Role { get; set; }
+        public List<Role>? Roles { get; set; }
         public required string AccessToken { get; set; }
         public required string RefreshTokenApp { get; set; }
-        public required bool OrganizationOwner { get; set; } = false;
+        public Guid? TeamId { get; set; }
+        public Guid? OrganizationId { get; set; }
     }
 }

@@ -10,10 +10,10 @@ namespace assnet8.Identity
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class VerifyRoles : Attribute, IAuthorizationFilter
     {
-        private readonly IEnumerable<TeamRole> _allowedRoles;
+        private readonly List<Role> _allowedRoles;
         private readonly bool _userOrganizationOwner;
 
-        public VerifyRoles(IEnumerable<TeamRole> allowedRoles, bool userOrganizationOwner = false)
+        public VerifyRoles(List<Role> allowedRoles, bool userOrganizationOwner = false)
         {
             _allowedRoles = allowedRoles;
             _userOrganizationOwner = userOrganizationOwner;
@@ -21,19 +21,19 @@ namespace assnet8.Identity
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             var user = context.HttpContext.User;
-            var roles = user.FindAll(x => x.Type == "role").Select(x => x.Value);
+            // var roles = user.FindAll(x => x.Type == "role").Select(x => x.Value); odavne nije dobro pa na dole
+            
+            // var hasAccess = roles.Any(role => _allowedRoles.Contains((TeamRole)Enum.Parse(typeof(TeamRole), role)));
 
-            var hasAccess = roles.Any(role => _allowedRoles.Contains((TeamRole)Enum.Parse(typeof(TeamRole), role)));
-
-            if (!hasAccess && _userOrganizationOwner)
-            {
-                hasAccess = user.FindFirst("organizationOwner")?.Value == "true"; // .Value uvek vraca string
-            }
-            //TODO odavde sam skinuo proveravanje organizacije iz baze tkd vrv moze da se skine ovo task i async
-            if (!hasAccess)
-            {
-                context.Result = new ForbidResult();
-            }
+            // if (!hasAccess && _userOrganizationOwner)
+            // {
+            //     hasAccess = user.FindFirst("organizationOwner")?.Value == "true"; // .Value uvek vraca string
+            // }
+            // //TODO odavde sam skinuo proveravanje organizacije iz baze tkd vrv moze da se skine ovo task i async
+            // if (!hasAccess)
+            // {
+            //     context.Result = new ForbidResult();
+            // }
         }
     }
 

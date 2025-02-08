@@ -7,7 +7,8 @@ namespace assnet8.Services.Auth
 {
     public interface IJwtService
     {
-        string GenerateAccessToken(User user);
-        string GenerateRefreshToken(User user);
+        string GenerateAccessToken(User user, DateTime? expires);
+        string GenerateRefreshToken(User user, DateTime? expires);
+        DecodedRefreshToken DecodeRefreshToken(string refreshtoken);
     }
 }

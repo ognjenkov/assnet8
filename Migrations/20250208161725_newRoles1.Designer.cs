@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using assnet8.Data;
 
@@ -11,9 +12,11 @@ using assnet8.Data;
 namespace assnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250208161725_newRoles1")]
+    partial class newRoles1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -449,32 +452,32 @@ namespace assnet8.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Id = new Guid("e543e2f0-c734-4aa6-b9c4-9c8d79183842"),
                             Name = "Member"
                         },
                         new
                         {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Id = new Guid("96aae12b-1837-4a56-9b4c-3420767e9d36"),
                             Name = "TeamLeader"
                         },
                         new
                         {
-                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Id = new Guid("a93bef78-0efa-4999-9de9-050c883b97d3"),
                             Name = "Creator"
                         },
                         new
                         {
-                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            Id = new Guid("fb6dfbab-19d0-4b03-b4d0-07d1f127b74e"),
                             Name = "Organizer"
                         },
                         new
                         {
-                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            Id = new Guid("b2868a9b-0697-4d25-aef7-c363c96899dc"),
                             Name = "ServiceProvider"
                         },
                         new
                         {
-                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
+                            Id = new Guid("27633635-f9f4-44ea-8215-668000b8a351"),
                             Name = "OrganizationOwner"
                         });
                 });
@@ -596,7 +599,7 @@ namespace assnet8.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("GoogleUid")
                         .HasColumnType("nvarchar(max)");
@@ -616,37 +619,23 @@ namespace assnet8.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("RefreshTokenApp")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RefreshTokenCookie")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("VerifiedEmail")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
                     b.HasIndex("ProfileImageId")
                         .IsUnique()
                         .HasFilter("[ProfileImageId] IS NOT NULL");
-
-                    b.HasIndex("RefreshTokenApp")
-                        .IsUnique()
-                        .HasFilter("[RefreshTokenApp] IS NOT NULL");
-
-                    b.HasIndex("RefreshTokenCookie")
-                        .IsUnique()
-                        .HasFilter("[RefreshTokenCookie] IS NOT NULL");
-
-                    b.HasIndex("Username")
-                        .IsUnique();
 
                     b.ToTable("Users");
                 });

@@ -12,6 +12,14 @@ namespace assnet8.Data.Configuration
         {
             builder.HasIndex(m => m.UserId).IsUnique();
 
+            builder.HasMany(m => m.Roles)
+                   .WithMany(r => r.Memberships)
+                   .UsingEntity<Dictionary<string, object>>(
+                       "MembershipRole", // Name of the join table
+                       j => j.HasOne<Role>().WithMany().OnDelete(DeleteBehavior.Cascade), // Cascade delete from role side
+                       j => j.HasOne<Membership>().WithMany().OnDelete(DeleteBehavior.Cascade) // Cascade delete from membership side
+                   );
+
             builder.HasOne(m => m.User)
             .WithOne(u => u.Membership)
             .HasForeignKey<Membership>(m => m.UserId)

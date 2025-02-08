@@ -42,6 +42,7 @@ namespace assnet8.Data
             modelBuilder.ApplyConfiguration(new MembershipConfiguration());
             modelBuilder.ApplyConfiguration(new MunicipalityConfiguration());
             modelBuilder.ApplyConfiguration(new ListingConfiguration());
+            modelBuilder.ApplyConfiguration(new RoleConfiguration());
 
 
             // Configure the TagType enum to be stored as a string
@@ -73,13 +74,6 @@ namespace assnet8.Data
                 .HasConversion(
                     v => v.ToString(), // Convert enum to string when saving to the database
                     v => (ListingStatus)Enum.Parse(typeof(ListingStatus), v) // Convert string back to enum when reading from the database
-                );
-            // Configure the TeamRole enum to be stored as a string
-            modelBuilder.Entity<Membership>()
-                .Property(m => m.Role) // Assuming you have a Role property in Membership
-                .HasConversion(
-                    v => v.ToString(), // Convert enum to string when saving to the database
-                    v => (TeamRole)Enum.Parse(typeof(TeamRole), v) // Convert string back to enum when reading from the database
                 );
 
 

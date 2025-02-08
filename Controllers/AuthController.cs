@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using assnet8.Dtos.Auth;
 using assnet8.Services.Auth;
@@ -43,9 +44,9 @@ namespace assnet8.Controllers
                 return Unauthorized(new { message = "Invalid password" });
             }
 
-            var accessToken = _jwtService.GenerateAccessToken(user);
-            var refreshTokenApp = _jwtService.GenerateRefreshToken(user);
-            var refreshTokenCookie = _jwtService.GenerateRefreshToken(user);
+            var accessToken = _jwtService.GenerateAccessToken(user, null);
+            var refreshTokenApp = _jwtService.GenerateRefreshToken(user, null);
+            var refreshTokenCookie = _jwtService.GenerateRefreshToken(user, null);
 
             user.RefreshTokenApp = refreshTokenApp;
             user.RefreshTokenCookie = refreshTokenCookie;
@@ -63,29 +64,126 @@ namespace assnet8.Controllers
 
             Response.Cookies.Append("jwt", refreshTokenCookie, cookieOptions);
 
+            var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
+
+            if (user.Organization != null) roles.Add(new Role { Name = "OrganizationOwner" });
+
+
             var response = new LoginResponseDto
             {
                 AccessToken = accessToken,
                 RefreshTokenApp = refreshTokenApp,
                 Username = user.Username,
                 ProfileImage = user.ProfileImage,
-                Role = user.Membership?.Role,
-                OrganizationOwner = user.Organization != null
+                Roles = roles,
+                TeamId = user.Membership?.TeamId ?? null,
+                OrganizationId = user.Organization?.Id ?? null
             };
             return Ok(response);
         }
 
 
         [HttpPost("Logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            if (!Request.Cookies.TryGetValue("jwt", out string? refreshTokenCookie))
+            {
+                return StatusCode(204);
+            }
+            var user = _dbContext.Users
+                .Where(u => u.RefreshTokenCookie == refreshTokenCookie)
+                .FirstOrDefault();
 
-            return Ok("success");
+            if (user == null) {
+                Response.Cookies.Delete("jwt");
+                return StatusCode(204);
+            }
+
+            user.RefreshTokenApp = null;
+            user.RefreshTokenCookie = null;
+            user.PersistLogin = false;
+            await _dbContext.SaveChangesAsync();
+            Response.Cookies.Delete("jwt");
+            return StatusCode(204);
+
         }
         [HttpPost("Refresh")]
-        public IActionResult Refresh()
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto request)
         {
-            return Ok("success");
+            if (!Request.Cookies.TryGetValue("jwt", out string? refreshTokenCookie))
+            {
+                return Unauthorized();
+            }
+            var user = _dbContext.Users
+                .Where(u => u.RefreshTokenCookie == refreshTokenCookie)
+                .Include(u => u.Membership)
+                .Include(u => u.Organization)
+                .Include(u => u.ProfileImage)
+                .FirstOrDefault();
+
+            if (user == null) return StatusCode(403, new { message = "User not found" }); // ako ne postoji user sa tim cookiem
+            if (user.PersistLogin == false && request.RefreshTokenApp == null) // ako nije persist login request.refreshTokenApp mora da bude prosledjen
+            {
+                return StatusCode(403, new { message = "user.PersistLogin == false && request.RefreshTokenApp == null" });
+            }
+            if (user.PersistLogin == false && request.RefreshTokenApp != null && user.RefreshTokenApp != request.RefreshTokenApp) // ako je prosledjen mora da bude na u useru
+            { //TODO mislim da ovde trebam da ga izlogujem jer je neko pokusao da refreshuje a vrv nije korisnik, ili mozda tek da izlogujem kad prodje decode i proveru emaila jer je tad vec opasna stvar, znaci neko je def pokusao sa starim keyom da refreshuje
+                return StatusCode(403, new { message = "user.PersistLogin == false && request.RefreshTokenApp != null && user.RefreshTokenApp != request.RefreshTokenApp" });
+            }
+
+            DecodedRefreshToken? decodedRefreshToken = null;
+            try
+            {
+                decodedRefreshToken = user.PersistLogin ? _jwtService.DecodeRefreshToken(refreshTokenCookie) : _jwtService.DecodeRefreshToken(request.RefreshTokenApp!); // moras ovde error handling da uradiserror handling TODO
+            }
+            catch (System.Exception)
+            {
+                return StatusCode(403);
+            }
+
+            if (decodedRefreshToken.HashedEmail == null) return StatusCode(403, new { message = "decodedRefreshToken.HashedEmail == null" }); // mora da ima email u refresh tokenu
+
+            var passwordHasher = new PasswordHasher<string>();
+
+            if (passwordHasher.VerifyHashedPassword("", decodedRefreshToken.HashedEmail, user.Email) == PasswordVerificationResult.Failed) // hashovani email iz refresh tokena mora da bude isti kao email u useru
+            {
+                return StatusCode(403, new { message = "VerifyHashedPassword" });
+            }
+
+            var newAccessToken = _jwtService.GenerateAccessToken(user, null);
+            var newRefreshTokenApp = _jwtService.GenerateRefreshToken(user, decodedRefreshToken.Expiration);
+            var newRefreshTokenCookie = _jwtService.GenerateRefreshToken(user, decodedRefreshToken.Expiration);
+
+            user.RefreshTokenApp = newRefreshTokenApp;
+            user.RefreshTokenCookie = newRefreshTokenCookie;
+
+            await _dbContext.SaveChangesAsync();
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.None,
+                Secure = true,
+                MaxAge = decodedRefreshToken.Expiration - DateTime.UtcNow
+            };
+            Response.Cookies.Append("jwt", newRefreshTokenCookie, cookieOptions);
+
+            var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
+
+            if (user.Organization != null) roles.Add(new Role { Name = "OrganizationOwner" });
+
+            var response = new LoginResponseDto
+            {
+                AccessToken = newAccessToken,
+                RefreshTokenApp = newRefreshTokenApp,
+                Username = user.Username,
+                ProfileImage = user.ProfileImage,
+                Roles = roles,
+                TeamId = user.Membership?.TeamId ?? null,
+                OrganizationId = user.Organization?.Id ?? null
+            };
+
+            return Ok(response);
         }
         [Authorize]
         [HttpGet("get-cookie")]
@@ -93,7 +191,19 @@ namespace assnet8.Controllers
         {
             if (Request.Cookies.TryGetValue("jwt", out string? cookieValue))
             {
-                return Ok(new { CookieValue = cookieValue });
+                var userId = User.FindFirst("userId")?.Value; // ovo je veoma primitivno, sta se desi ako ovo nema, itd TODO
+                var rolesClaim = User.FindFirst("roles")?.Value;
+                var roles = rolesClaim != null ? JsonSerializer.Deserialize<List<string>>(rolesClaim) : new List<string>();
+
+                return Ok(new
+                {
+                    CookieValue = cookieValue,
+                    User = new
+                    {
+                        Id = userId,
+                        Roles = roles
+                    }
+                });
             }
             return NotFound("Cookie not found");
         }
