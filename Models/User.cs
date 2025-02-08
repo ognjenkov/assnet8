@@ -12,6 +12,9 @@ namespace assnet8.Models
         public required string Name { get; set; }
         public required string Email { get; set; }
         public required string Password { get; set; }
+        public string? RefreshTokenApp { get; set; }
+        public string? RefreshTokenCookie { get; set; }
+        public bool PersistLogin { get; set; } = false;
         public string? GoogleUid { get; set; }
         public bool VerifiedEmail { get; set; } = false;
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;

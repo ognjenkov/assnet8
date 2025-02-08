@@ -10,6 +10,7 @@ using assnet8.Swagger;
 using System.Text.Json;
 using FluentValidation;
 using assnet8.Middleware;
+using assnet8.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -24,13 +25,13 @@ builder.Services.AddAuthentication(configureOptions =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        // ValidateIssuer = true, TODO dodaj ovo nakon sto dodas linkove za front i back u zavisnosti dal je production ili development, ovo ce biti pred kraj aplikacije
-        // ValidateAudience = true,
+        ValidateIssuer = true, //TODO dodaj ovo nakon sto dodas linkove za front i back u zavisnosti dal je production ili development, ovo ce biti pred kraj aplikacije
+        ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        // ValidIssuer = config["Jwt:Issuer"],
-        // ValidAudience = config["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
+        ValidIssuer = config["Jwt:Issuer"],
+        ValidAudience = config["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:ACCESS_TOKEN_SECRET"]!))
     };
 });
 builder.Services.AddAuthorization();
@@ -50,7 +51,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-
+builder.Services.AddSingleton<IJwtService, JwtService>();
+//AddScoped -> create new instance for every request
+//AddTransient -> new instance for every controller and every service for every request
+//AddSingleton -> only one instance for every request
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

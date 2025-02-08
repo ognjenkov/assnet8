@@ -8,10 +8,10 @@ namespace assnet8.Dtos.Auth
 {
     public class RegisterRequestDto
     {
-        public string? Username { get; set; }
-        public string? Name { get; set; }
-        public string? Email { get; set; }
-        public string? Password { get; set; }
+        public required string Username { get; set; }
+        public required string Name { get; set; }
+        public required string Email { get; set; }
+        public required string Password { get; set; }
     }
 
     public class RegisterRequestDtoValidator : AbstractValidator<RegisterRequestDto>
@@ -27,29 +27,33 @@ namespace assnet8.Dtos.Auth
                 .MinimumLength(3).WithMessage("Username must be at least 3 characters")
                 .MaximumLength(20).WithMessage("Username must be at most 20 characters")
                 .MustAsync(IsUniqueUsername).WithMessage("Username is already taken");
-                
+
             RuleFor(x => x.Name)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("Name is required")
                 .MinimumLength(3).WithMessage("Name must be at least 3 characters")
-                .MaximumLength(20).WithMessage("Name must be at most 20 characters");
+                .MaximumLength(30).WithMessage("Name must be at most 30 characters");
 
             RuleFor(x => x.Email)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("Email is required")
                 .EmailAddress().WithMessage("Invalid email address")
                 .MustAsync(IsUniqueEmail).WithMessage("Email is already taken");
-            
-            RuleFor(x => x.Password).NotEmpty();
+
+            RuleFor(x => x.Password)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty().WithMessage("Password is required")
+                .MinimumLength(3).WithMessage("Password must be at least 3 characters")
+                .MaximumLength(30).WithMessage("Password must be at most 30 characters");
         }
 
-        private async Task<bool> IsUniqueUsername(string? username, CancellationToken token)
+        private async Task<bool> IsUniqueUsername(string username, CancellationToken token)
         {
-            return !await _dbContext.Users.AnyAsync(u => u.Username == username);
-        }
-        private async Task<bool> IsUniqueEmail(string? email, CancellationToken token)
+            return !await _dbContext.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower(), cancellationToken: token);
+        } /// born to shit forced to wipe, ovde treba da se koristi string.Equals(,,StringComparison.InvariantCultureIgnoreCase) ali database ne podrzava
+        private async Task<bool> IsUniqueEmail(string email, CancellationToken token)
         {
-            return !await _dbContext.Users.AnyAsync(u => u.Email == email);
+            return !await _dbContext.Users.AnyAsync(u => u.Email.ToLower() == email.ToLower(), cancellationToken: token);
         }
     }
 }
