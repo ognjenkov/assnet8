@@ -32,3 +32,7 @@ public class UserSimpleDto
     public required string Username { get; set; }
     public ImageSimpleDto? ProfileImage { get; set; }
 }
+public class LocationSimpleDto
+{
+    public required string Region { get; set; }
+}

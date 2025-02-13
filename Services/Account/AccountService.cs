@@ -27,9 +27,13 @@ namespace assnet8.Services.Account
         {
             return await _dbContext.Teams
                                     .Where(t => t.Memberships.Any(m => m.UserId == userId))
-                                    .Include(t => t.Galleries)
-                                        .ThenInclude(g => g.Images)
+                                    .Include(t => t.Creator!)
+                                        .ThenInclude(u => u.ProfileImage)
+                                    .Include(t => t.LogoImage)
                                     .Include(t => t.Memberships)
+                                        .ThenInclude(m => m.User!)
+                                            .ThenInclude(u => u.ProfileImage)
+                                    .Include(t => t.Location)
                                     .SingleOrDefaultAsync();
         }
 

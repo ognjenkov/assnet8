@@ -78,9 +78,54 @@ public class AccountController : BaseController
     }
 
     [HttpGet("team-information")]
-    public IActionResult GetTeamInformation()
+    public async Task<IActionResult> GetTeamInformation()
     {
-        return Ok("Team information");
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        // return _httpContextAccessor.HttpContext?.User?.Identity?.Name; ovako se nabavlja u servisu
+        if (userId == null) return Unauthorized(); //TODO da li zelim ovo ovako da proveramav ili ima bolji nacin
+
+        if (userId != Guid.Parse(userId).ToString()) return Unauthorized();
+
+        var team = await _accountService.GetTeamFromUserId(Guid.Parse(userId));
+
+        if (team == null) return NotFound("Team not found");
+
+        return Ok(new GetTeamInformationResponseDto
+        {
+            Id = team.Id,
+            Name = team.Name,
+            CreateDateTime = team.CreateDateTime,
+            Creator = new UserSimpleDto
+            {
+                Username = team.Creator!.Username,
+                ProfileImage = team.Creator.ProfileImage == null ? null : new ImageSimpleDto
+                {
+                    Url = team.Creator.ProfileImage.Url
+                }
+            },
+            LogoImage = team.LogoImage == null ? null : new ImageSimpleDto
+            {
+                Url = team.LogoImage.Url
+            },
+            Memberships = team.Memberships.Select(m => new MembershipSimpleDto
+            {
+                CreateDateTime = m.CreateDateTime,
+                Roles = m.Roles,
+                User = new UserSimpleDto
+                {
+                    Username = m.User!.Username,
+                    ProfileImage = m.User.ProfileImage == null ? null : new ImageSimpleDto
+                    {
+                        Url = m.User.ProfileImage.Url
+                    }
+                }
+            }).ToList(),
+            Location = team.Location == null ? null : new LocationSimpleDto
+            {
+                Region = team.Location.Region
+            }
+
+        });
     }
 
     [HttpGet("card/{userId}")]
