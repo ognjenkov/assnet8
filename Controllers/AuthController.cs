@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 using assnet8.Dtos.Auth;
@@ -9,231 +10,242 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace assnet8.Controllers
+namespace assnet8.Controllers;
+public class AuthController : BaseController
 {
-    public class AuthController : BaseController
+    private readonly AppDbContext _dbContext;
+    private readonly IJwtService _jwtService;
+
+    public AuthController(AppDbContext dbContext, IJwtService jwtService)
     {
-        private readonly AppDbContext _dbContext;
-        private readonly IJwtService _jwtService;
+        this._jwtService = jwtService;
+        this._dbContext = dbContext;
+    }
 
-        public AuthController(AppDbContext dbContext, IJwtService jwtService)
+    [HttpPost("Login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+    {
+        var user = await _dbContext.Users
+            .Where(u => u.Username == request.UsernameOrEmail || u.Email == request.UsernameOrEmail)
+            .Include(u => u.Membership)
+            .Include(u => u.Organization)
+            .Include(u => u.ProfileImage)
+            .FirstOrDefaultAsync();// ovde si stao, razocaran jer ti rolovi nisu niz
+
+        if (user == null)
         {
-            this._jwtService = jwtService;
-            this._dbContext = dbContext;
+            return NotFound("User not found"); // ovo se nikad nece desiti jer sam vec proverio u validaciji
         }
 
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+        var passwordHasher = new PasswordHasher<string>();
+
+        if (passwordHasher.VerifyHashedPassword("", user.Password, request.Password) == PasswordVerificationResult.Failed)
         {
-            var user = _dbContext.Users
-                .Where(u => u.Username == request.UsernameOrEmail || u.Email == request.UsernameOrEmail)
-                .Include(u => u.Membership)
-                .Include(u => u.Organization)
-                .Include(u => u.ProfileImage)
-                .FirstOrDefault();// ovde si stao, razocaran jer ti rolovi nisu niz
-
-            if (user == null)
-            {
-                return NotFound("User not found"); // ovo se nikad nece desiti jer sam vec proverio u validaciji
-            }
-
-            var passwordHasher = new PasswordHasher<string>();
-
-            if (passwordHasher.VerifyHashedPassword("", user.Password, request.Password) == PasswordVerificationResult.Failed)
-            {
-                return Unauthorized(new { message = "Invalid password" });
-            }
-
-            var accessToken = _jwtService.GenerateAccessToken(user, null);
-            var refreshTokenApp = _jwtService.GenerateRefreshToken(user, null);
-            var refreshTokenCookie = _jwtService.GenerateRefreshToken(user, null);
-
-            user.RefreshTokenApp = refreshTokenApp;
-            user.RefreshTokenCookie = refreshTokenCookie;
-            user.PersistLogin = request.RememberMe;
-
-            await _dbContext.SaveChangesAsync();
-
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.None,
-                Secure = true,
-                MaxAge = TimeSpan.FromDays(30)
-            };
-
-            Response.Cookies.Append("jwt", refreshTokenCookie, cookieOptions);
-
-            var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
-
-            if (user.Organization != null) roles.Add(new Role { Name = "OrganizationOwner" });
-
-
-            var response = new LoginResponseDto
-            {
-                AccessToken = accessToken,
-                RefreshTokenApp = refreshTokenApp,
-                Username = user.Username,
-                ProfileImage = user.ProfileImage,
-                Roles = roles,
-                TeamId = user.Membership?.TeamId ?? null,
-                OrganizationId = user.Organization?.Id ?? null
-            };
-            return Ok(response);
+            return Unauthorized(new { message = "Invalid password" });
         }
 
+        var accessToken = _jwtService.GenerateAccessToken(user, null);
+        var refreshTokenApp = _jwtService.GenerateRefreshToken(user, null);
+        var refreshTokenCookie = _jwtService.GenerateRefreshToken(user, null);
 
-        [HttpPost("Logout")]
-        public async Task<IActionResult> Logout()
+        user.RefreshTokenApp = refreshTokenApp;
+        user.RefreshTokenCookie = refreshTokenCookie;
+        user.PersistLogin = request.RememberMe;
+
+        await _dbContext.SaveChangesAsync();
+
+        var cookieOptions = new CookieOptions
         {
-            if (!Request.Cookies.TryGetValue("jwt", out string? refreshTokenCookie))
-            {
-                return StatusCode(204);
-            }
-            var user = _dbContext.Users
-                .Where(u => u.RefreshTokenCookie == refreshTokenCookie)
-                .FirstOrDefault();
+            HttpOnly = true,
+            SameSite = SameSiteMode.None,
+            Secure = true,
+            MaxAge = TimeSpan.FromDays(30)
+        };
 
-            if (user == null) {
-                Response.Cookies.Delete("jwt");
-                return StatusCode(204);
-            }
+        Response.Cookies.Append("jwt", refreshTokenCookie, cookieOptions);
 
-            user.RefreshTokenApp = null;
-            user.RefreshTokenCookie = null;
-            user.PersistLogin = false;
-            await _dbContext.SaveChangesAsync();
+        var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
+
+        if (user.Organization != null) roles.Add(new Role { Name = "OrganizationOwner" });
+
+
+        var response = new LoginResponseDto
+        {
+            AccessToken = accessToken,
+            RefreshTokenApp = refreshTokenApp,
+            Username = user.Username,
+            ProfileImage = user.ProfileImage,
+            Roles = roles,
+            TeamId = user.Membership?.TeamId ?? null,
+            OrganizationId = user.Organization?.Id ?? null
+        };
+        return Ok(response);
+    }
+
+
+    [HttpPost("Logout")]
+    public async Task<IActionResult> Logout()
+    {
+        if (!Request.Cookies.TryGetValue("jwt", out string? refreshTokenCookie))
+        {
+            return StatusCode(204);
+        }
+        var user = await _dbContext.Users
+            .Where(u => u.RefreshTokenCookie == refreshTokenCookie)
+            .FirstOrDefaultAsync();
+
+        if (user == null)
+        {
             Response.Cookies.Delete("jwt");
             return StatusCode(204);
-
         }
-        [HttpPost("Refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto request)
+
+        user.RefreshTokenApp = null;
+        user.RefreshTokenCookie = null;
+        user.PersistLogin = false;
+        await _dbContext.SaveChangesAsync();
+        Response.Cookies.Delete("jwt");
+        return StatusCode(204);
+
+    }
+
+    [HttpPost("Refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto request)
+    {
+        if (!Request.Cookies.TryGetValue("jwt", out string? refreshTokenCookie))
         {
-            if (!Request.Cookies.TryGetValue("jwt", out string? refreshTokenCookie))
-            {
-                return Unauthorized();
-            }
-            var user = _dbContext.Users
-                .Where(u => u.RefreshTokenCookie == refreshTokenCookie)
-                .Include(u => u.Membership)
-                .Include(u => u.Organization)
-                .Include(u => u.ProfileImage)
-                .FirstOrDefault();
+            return Unauthorized();
+        }
+        var user = await _dbContext.Users
+            .Where(u => u.RefreshTokenCookie == refreshTokenCookie)
+            .Include(u => u.Membership)
+            .Include(u => u.Organization)
+            .Include(u => u.ProfileImage)
+            .FirstOrDefaultAsync();
 
-            if (user == null) return StatusCode(403, new { message = "User not found" }); // ako ne postoji user sa tim cookiem
-            if (user.PersistLogin == false && request.RefreshTokenApp == null) // ako nije persist login request.refreshTokenApp mora da bude prosledjen
+        if (user == null) return StatusCode(403, new { message = "User not found" }); // ako ne postoji user sa tim cookiem
+        if (user.PersistLogin == false && request.RefreshTokenApp == null) // ako nije persist login request.refreshTokenApp mora da bude prosledjen
+        {
+            return StatusCode(403, new { message = "user.PersistLogin == false && request.RefreshTokenApp == null" });
+        }
+        if (user.PersistLogin == false && request.RefreshTokenApp != null && user.RefreshTokenApp != request.RefreshTokenApp) // ako je prosledjen mora da bude na u useru
+        { //TODO mislim da ovde trebam da ga izlogujem jer je neko pokusao da refreshuje a vrv nije korisnik, ili mozda tek da izlogujem kad prodje decode i proveru emaila jer je tad vec opasna stvar, znaci neko je def pokusao sa starim keyom da refreshuje
+            return StatusCode(403, new { message = "user.PersistLogin == false && request.RefreshTokenApp != null && user.RefreshTokenApp != request.RefreshTokenApp" });
+        }
+
+        DecodedRefreshToken? decodedRefreshToken = null;
+        try
+        {
+            decodedRefreshToken = user.PersistLogin ? _jwtService.DecodeRefreshToken(refreshTokenCookie) : _jwtService.DecodeRefreshToken(request.RefreshTokenApp!); // moras ovde error handling da uradiserror handling TODO
+        }
+        catch (System.Exception)
+        {
+            return StatusCode(403);
+        }
+
+        if (decodedRefreshToken.HashedEmail == null) return StatusCode(403, new { message = "decodedRefreshToken.HashedEmail == null" }); // mora da ima email u refresh tokenu
+
+        var passwordHasher = new PasswordHasher<string>();
+
+        if (passwordHasher.VerifyHashedPassword("", decodedRefreshToken.HashedEmail, user.Email) == PasswordVerificationResult.Failed) // hashovani email iz refresh tokena mora da bude isti kao email u useru
+        {
+            return StatusCode(403, new { message = "VerifyHashedPassword" });
+        }
+
+        var newAccessToken = _jwtService.GenerateAccessToken(user, null);
+        var newRefreshTokenApp = _jwtService.GenerateRefreshToken(user, decodedRefreshToken.Expiration);
+        var newRefreshTokenCookie = _jwtService.GenerateRefreshToken(user, decodedRefreshToken.Expiration);
+
+        user.RefreshTokenApp = newRefreshTokenApp;
+        user.RefreshTokenCookie = newRefreshTokenCookie;
+
+        await _dbContext.SaveChangesAsync();
+
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            SameSite = SameSiteMode.None,
+            Secure = true,
+            MaxAge = decodedRefreshToken.Expiration - DateTime.UtcNow
+        };
+        Response.Cookies.Append("jwt", newRefreshTokenCookie, cookieOptions);
+
+        var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
+
+        if (user.Organization != null) roles.Add(new Role { Name = "OrganizationOwner" });
+
+        var response = new LoginResponseDto
+        {
+            AccessToken = newAccessToken,
+            RefreshTokenApp = newRefreshTokenApp,
+            Username = user.Username,
+            ProfileImage = user.ProfileImage,
+            Roles = roles,
+            TeamId = user.Membership?.TeamId ?? null,
+            OrganizationId = user.Organization?.Id ?? null
+        };
+
+        return Ok(response);
+    }
+
+    [Authorize]
+    [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.TeamLeader, Roles.Member, Roles.OrganizationOwner, Roles.ServiceProvider)]
+    [HttpGet("get-cookie")]
+    public IActionResult GetCookie()
+    {
+        if (Request.Cookies.TryGetValue("jwt", out string? cookieValue))
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var roles = User.Claims
+                .Where(c => c.Type == ClaimTypes.Role) // Get all role claims
+                .Select(c => c.Value)
+                .ToList();
+
+            if (string.IsNullOrEmpty(userId))
             {
-                return StatusCode(403, new { message = "user.PersistLogin == false && request.RefreshTokenApp == null" });
-            }
-            if (user.PersistLogin == false && request.RefreshTokenApp != null && user.RefreshTokenApp != request.RefreshTokenApp) // ako je prosledjen mora da bude na u useru
-            { //TODO mislim da ovde trebam da ga izlogujem jer je neko pokusao da refreshuje a vrv nije korisnik, ili mozda tek da izlogujem kad prodje decode i proveru emaila jer je tad vec opasna stvar, znaci neko je def pokusao sa starim keyom da refreshuje
-                return StatusCode(403, new { message = "user.PersistLogin == false && request.RefreshTokenApp != null && user.RefreshTokenApp != request.RefreshTokenApp" });
+                return Unauthorized("Invalid user token");
             }
 
-            DecodedRefreshToken? decodedRefreshToken = null;
-            try
+            return Ok(new
             {
-                decodedRefreshToken = user.PersistLogin ? _jwtService.DecodeRefreshToken(refreshTokenCookie) : _jwtService.DecodeRefreshToken(request.RefreshTokenApp!); // moras ovde error handling da uradiserror handling TODO
-            }
-            catch (System.Exception)
-            {
-                return StatusCode(403);
-            }
+                CookieValue = cookieValue,
+                User = new
+                {
+                    Id = userId,
+                    Roles = roles
+                }
+            });
+        }
 
-            if (decodedRefreshToken.HashedEmail == null) return StatusCode(403, new { message = "decodedRefreshToken.HashedEmail == null" }); // mora da ima email u refresh tokenu
+        return NotFound("Cookie not found");
+    }
 
+    [HttpPost("Register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+    {
+        try
+        {
             var passwordHasher = new PasswordHasher<string>();
+            string hashedPassword = passwordHasher.HashPassword("", request.Password);
 
-            if (passwordHasher.VerifyHashedPassword("", decodedRefreshToken.HashedEmail, user.Email) == PasswordVerificationResult.Failed) // hashovani email iz refresh tokena mora da bude isti kao email u useru
+            var user = new User
             {
-                return StatusCode(403, new { message = "VerifyHashedPassword" });
-            }
+                Email = request.Email,
+                Name = request.Name,
+                Username = request.Username,
+                Password = hashedPassword
+            };
 
-            var newAccessToken = _jwtService.GenerateAccessToken(user, null);
-            var newRefreshTokenApp = _jwtService.GenerateRefreshToken(user, decodedRefreshToken.Expiration);
-            var newRefreshTokenCookie = _jwtService.GenerateRefreshToken(user, decodedRefreshToken.Expiration);
-
-            user.RefreshTokenApp = newRefreshTokenApp;
-            user.RefreshTokenCookie = newRefreshTokenCookie;
-
+            await _dbContext.Users.AddAsync(user);
             await _dbContext.SaveChangesAsync();
 
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.None,
-                Secure = true,
-                MaxAge = decodedRefreshToken.Expiration - DateTime.UtcNow
-            };
-            Response.Cookies.Append("jwt", newRefreshTokenCookie, cookieOptions);
-
-            var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
-
-            if (user.Organization != null) roles.Add(new Role { Name = "OrganizationOwner" });
-
-            var response = new LoginResponseDto
-            {
-                AccessToken = newAccessToken,
-                RefreshTokenApp = newRefreshTokenApp,
-                Username = user.Username,
-                ProfileImage = user.ProfileImage,
-                Roles = roles,
-                TeamId = user.Membership?.TeamId ?? null,
-                OrganizationId = user.Organization?.Id ?? null
-            };
-
-            return Ok(response);
+            return StatusCode(201, new { message = $"New user {request.Username} created!" });
         }
-        [Authorize]
-        [HttpGet("get-cookie")]
-        public IActionResult GetCookie()
+        catch (Exception ex)
         {
-            if (Request.Cookies.TryGetValue("jwt", out string? cookieValue))
-            {
-                var userId = User.FindFirst("userId")?.Value; // ovo je veoma primitivno, sta se desi ako ovo nema, itd TODO
-                var rolesClaim = User.FindFirst("roles")?.Value;
-                var roles = rolesClaim != null ? JsonSerializer.Deserialize<List<string>>(rolesClaim) : new List<string>();
+            return StatusCode(500, new { message = ex.Message });
 
-                return Ok(new
-                {
-                    CookieValue = cookieValue,
-                    User = new
-                    {
-                        Id = userId,
-                        Roles = roles
-                    }
-                });
-            }
-            return NotFound("Cookie not found");
-        }
-        [HttpPost("Register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
-        {
-            try
-            {
-                var passwordHasher = new PasswordHasher<string>();
-                string hashedPassword = passwordHasher.HashPassword("", request.Password);
-
-                var user = new User
-                {
-                    Email = request.Email,
-                    Name = request.Name,
-                    Username = request.Username,
-                    Password = hashedPassword
-                };
-
-                _dbContext.Users.Add(user);
-                await _dbContext.SaveChangesAsync();
-
-                return StatusCode(201, new { message = $"New user {request.Username} created!" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-
-                // throw; predobra sintaksa za throwovanje expectiona tacno iz mesta odakle je dosao, kad bih ga uhavtion kao promenljivu putanjju bih sjebao ako bi ga throvovao ponovo
-            }
+            // throw; predobra sintaksa za throwovanje expectiona tacno iz mesta odakle je dosao, kad bih ga uhavtion kao promenljivu putanjju bih sjebao ako bi ga throvovao ponovo
         }
     }
 }

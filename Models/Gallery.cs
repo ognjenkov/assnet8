@@ -8,7 +8,7 @@ namespace assnet8.Models
     public class Gallery
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public required string Title { get; set; } 
+        public required string Title { get; set; }
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public Guid UserId { get; set; }
         public Guid TeamId { get; set; }
@@ -17,6 +17,6 @@ namespace assnet8.Models
         public Listing? Listing { get; set; }
         public Service? Service { get; set; }
         public Team? Team { get; set; }
-        public List<Image>? Images { get; set; }
+        public List<Image> Images { get; set; } = [];
     }
 }

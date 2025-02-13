@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
-[ApiController]
-[Route("[controller]")]
-public abstract class BaseController : Controller
+public class LocationsController : BaseController
 {
+
+    [HttpGet]
+    public IActionResult GetLocations()
+    {
+        return Ok("Get locations");
+    }
 }

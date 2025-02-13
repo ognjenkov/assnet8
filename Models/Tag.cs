@@ -18,8 +18,8 @@ namespace assnet8.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public required string Name { get; set; }
         public TagType Type { get; set; }
-        public List<Game>? Games { get; set; }
-        public List<Listing>? Listings { get; set; }
-        public List<Service>? Services { get; set; }
+        public List<Game> Games { get; set; } = [];
+        public List<Listing> Listings { get; set; } = [];
+        public List<Service> Services { get; set; } = [];
     }
 }

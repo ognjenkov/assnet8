@@ -31,14 +31,22 @@ public class JwtService : IJwtService
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_accessTokenSecret));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        var roleClaims = user.Membership != null ? user.Membership.Roles.Select(r => r.Name).ToList() : new List<string>();
-        if (user.Organization != null) roleClaims.Add("OrganizationOwner");
-
-        var claims = new[]
+        var claims = new List<Claim>
         {
-                new Claim("userId", user.Id.ToString()),
-                new Claim("roles", JsonSerializer.Serialize(roleClaims)),
-            };
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+        };
+
+        // Add roles individually as separate claims
+        if (user.Membership?.Roles != null)
+        {
+            claims.AddRange(user.Membership.Roles.Select(r => new Claim(ClaimTypes.Role, r.Name)));
+        }
+
+        // Add OrganizationOwner role if applicable
+        if (user.Organization != null)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "OrganizationOwner"));
+        }
 
         if (expires == null) expires = DateTime.UtcNow.AddMinutes(10);
 

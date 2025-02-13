@@ -1,6 +1,8 @@
 global using Microsoft.EntityFrameworkCore;
 global using assnet8.Models;
 global using assnet8.Data;
+global using assnet8.Identity;
+global using assnet8.Dtos.Simple;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -11,6 +13,7 @@ using System.Text.Json;
 using FluentValidation;
 using assnet8.Middleware;
 using assnet8.Services.Auth;
+using assnet8.Services.Account;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -52,6 +55,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 //AddScoped -> create new instance for every request
 //AddTransient -> new instance for every controller and every service for every request
 //AddSingleton -> only one instance for every request

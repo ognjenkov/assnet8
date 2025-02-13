@@ -14,8 +14,8 @@ namespace assnet8.Models
         public string? LengthTime { get; set; }
         public Guid OrganizationId { get; set; } // zavisi od organizacije
         public Guid FieldId { get; set; }
-        public List<Entry>? Entries { get; set; }
-        public List<Tag>? Tags { get; set; }
+        public List<Entry> Entries { get; set; } = [];
+        public List<Tag> Tags { get; set; } = [];
         public Organization? Organization { get; set; }
         public Field? Field { get; set; }
     }

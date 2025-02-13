@@ -19,7 +19,7 @@ namespace assnet8.Models
         public User? CreatedByUser { get; set; }
         public Gallery? Gallery { get; set; }
         public Image? ThumbnailImage { get; set; }
-        public List<Tag>? Tags { get; set; }
+        public List<Tag> Tags { get; set; } = [];
         public Organization? Organization { get; set; }
         public Location? Location { get; set; }
     }

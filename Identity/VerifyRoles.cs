@@ -1,40 +1,35 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace assnet8.Identity
-{
+namespace assnet8.Identity;
+// veoma interesantan kod vredi izuciti detaljno TODO
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class VerifyRoles : Attribute, IAuthorizationFilter
     {
-        private readonly List<Role> _allowedRoles;
-        private readonly bool _userOrganizationOwner;
+        private readonly List<string> _allowedRoles;
 
-        public VerifyRoles(List<Role> allowedRoles, bool userOrganizationOwner = false)
+        public VerifyRoles(params string[] allowedRoles)
         {
-            _allowedRoles = allowedRoles;
-            _userOrganizationOwner = userOrganizationOwner;
+            _allowedRoles = allowedRoles.ToList();
         }
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             var user = context.HttpContext.User;
-            // var roles = user.FindAll(x => x.Type == "role").Select(x => x.Value); odavne nije dobro pa na dole
-            
-            // var hasAccess = roles.Any(role => _allowedRoles.Contains((TeamRole)Enum.Parse(typeof(TeamRole), role)));
+            var userRoles = user.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
 
-            // if (!hasAccess && _userOrganizationOwner)
-            // {
-            //     hasAccess = user.FindFirst("organizationOwner")?.Value == "true"; // .Value uvek vraca string
-            // }
-            // //TODO odavde sam skinuo proveravanje organizacije iz baze tkd vrv moze da se skine ovo task i async
-            // if (!hasAccess)
-            // {
-            //     context.Result = new ForbidResult();
-            // }
+            if (!_allowedRoles.Any(role => userRoles.Contains(role)))
+            {
+                context.Result = new ForbidResult(); // 403 Forbidden
+            }
         }
     }
-
-}
+// koristi se
+// [Authorize]
+// [VerifyRoles(Roles.Member, Roles.TeamLeader)]
+// [HttpPost("CreateTeam")]
+// public IActionResult CreateTeam() { ... }

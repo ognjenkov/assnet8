@@ -46,7 +46,7 @@ namespace assnet8.Models
         public Guid? ThumbnailImageId { get; set; } // Foreign key to Image
         public User? User { get; set; }
         public Image? ThumbnailImage { get; set; } // Navigation property to Image
-        public List<Tag>? Tags { get; set; }
+        public List<Tag> Tags { get; set; } = [];
         public Gallery? Gallery { get; set; }
         public Location? Location { get; set; }
     }

@@ -19,11 +19,11 @@ namespace assnet8.Models
         public bool VerifiedEmail { get; set; } = false;
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public Guid? ProfileImageId { get; set; }
-        public List<Gallery>? Galleries { get; set; }
-        public List<Service>? Services { get; set; }
-        public List<Listing>? Listings { get; set; }
-        public List<Entry>? Entries { get; set; }
-        public List<Image>? UploadedImages { get; set; }
+        public List<Gallery> Galleries { get; set; } = [];
+        public List<Service> Services { get; set; } = [];
+        public List<Listing> Listings { get; set; } = [];
+        public List<Entry> Entries { get; set; } = [];
+        public List<Image> UploadedImages { get; set; } = [];
         public Image? ProfileImage { get; set; }
         public Organization? Organization { get; set; }
         public Team? Team { get; set; }
