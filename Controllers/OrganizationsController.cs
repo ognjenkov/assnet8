@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using assnet8.Dtos.Organizations.Request;
+using assnet8.Dtos.Organizations.Response;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +21,7 @@ public class OrganizationsController : BaseController
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrganization()
+    public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizationRequestDto request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
@@ -38,10 +40,19 @@ public class OrganizationsController : BaseController
         {
             return StatusCode(403);
         }
+        if (user.Organization != null) return BadRequest("User already has an organization");
+
+        var organization = new Organization
+        {
+            Name = request.Name,
+            UserId = user.Id,
+            TeamId = user.Membership?.TeamId
+        };
         // ako je u timu proveri da li ima permissione
+        await _dbContext.Organizations.AddAsync(organization);
+        await _dbContext.SaveChangesAsync();
 
-
-        return Ok("Create organization");
+        return StatusCode(201, organization.Id);
     }
 
     [VerifyRoles(Roles.Creator, Roles.OrganizationOwner, Roles.Organizer, Roles.ServiceProvider)]
@@ -59,9 +70,77 @@ public class OrganizationsController : BaseController
     }
 
     [HttpGet("card/{organizationId}")]
-    public IActionResult GetOrganizationCard([FromQuery] string organizationId)
+    public async Task<IActionResult> GetOrganizationCard([FromQuery] GetOrganizationCardRequestDto request)
     {
-        return Ok("Get organization card" + organizationId);
+        var organization = await _dbContext.Organizations
+                            .Where(o => o.Id == request.OrganizationId)
+                            .Include(o => o.LogoImage)
+                            .Include(o => o.Fields)
+                            .ThenInclude(f => f.ThumbnailImage)
+                            .Include(o => o.Games)
+                            .Include(o => o.Services)
+                            .ThenInclude(s => s.ThumbnailImage)
+                            .Include(o => o.User)
+                            .ThenInclude(u => u!.ProfileImage)
+                            .Include(o => o.Team)
+                            .ThenInclude(t => t!.LogoImage)
+                            .FirstOrDefaultAsync();
+
+        if (organization == null) return NotFound("Organization not found");
+
+        return Ok(new GetOrganizationCardResponseDto
+        {
+            Id = organization.Id,
+            Name = organization.Name,
+            CreateDateTime = organization.CreateDateTime,
+            LogoImage = organization.LogoImage == null ? null : new ImageSimpleDto
+            {
+                Url = organization.LogoImage.Url
+            },
+            Fields = organization.Fields.Select(f => new FieldSimpleDto
+            {
+                Id = f.Id,
+                Name = f.Name,
+                GoogleMapsLink = f.GoogleMapsLink,
+                ThumbnailImage = f.ThumbnailImage == null ? null : new ImageSimpleDto
+                {
+                    Url = f.ThumbnailImage.Url
+                }
+            }).ToList(),
+            Games = organization.Games.Select(g => new GameSimpleDto
+            {
+                Id = g.Id,
+                Title = g.Title,
+                StartDateTime = g.StartDateTime
+            }).ToList(),
+            Services = organization.Services.Select(s => new ServiceSimpleDto
+            {
+                Id = s.Id,
+                Title = s.Title,
+                ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
+                {
+                    Url = s.ThumbnailImage.Url
+                }
+            }).ToList(),
+            Team = organization.Team == null ? null : new TeamSimpleDto
+            {
+                Id = organization.Team.Id,
+                Name = organization.Team.Name,
+                LogoImage = organization.Team.LogoImage == null ? null : new ImageSimpleDto
+                {
+                    Url = organization.Team.LogoImage.Url
+                }
+            },
+            User = organization.User == null ? null : new UserSimpleDto
+            {
+                Id = organization.User.Id,
+                Username = organization.User.Username,
+                ProfileImage = organization.User.ProfileImage == null ? null : new ImageSimpleDto
+                {
+                    Url = organization.User.ProfileImage.Url
+                }
+            }
+        });
     }
 
 }
