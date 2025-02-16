@@ -1,19 +1,65 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using assnet8.Dtos.Teams.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
 public class TeamsController : BaseController
 {
+    private readonly AppDbContext _dbContext;
+
+    public TeamsController(AppDbContext dbContext)
+    {
+        this._dbContext = dbContext;
+    }
+
     [Authorize]
     [HttpPost]
-    public IActionResult CreateTeam()
+    public async Task<IActionResult> CreateTeam([FromBody] CreateTeamRequestDto request)
     {
-        //ne sme da ima tim ili da ima organizaciju
-        return Ok("Create team");
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+
+        if (userId != Guid.Parse(userId).ToString()) return Unauthorized();
+
+        var user = await _dbContext.Users
+                                    .Where(u => u.Id == Guid.Parse(userId))
+                                    .Include(u => u.Membership)
+                                    .Include(u => u.Organization)
+                                    .FirstOrDefaultAsync();
+
+        if (user == null) return NotFound("User not found");
+
+        if (user.Organization != null || user.Membership != null) return BadRequest("User already in team/organization");
+
+        var roles = await _dbContext.Roles
+                                .Where(r => r.Name == Roles.Creator)
+                                .ToListAsync();
+
+        var team = new Team
+        {
+            Name = request.Name,
+            CreatorId = user.Id,
+        };
+        _dbContext.Teams.Add(team);
+
+        var membership = new Membership
+        {
+            TeamId = team.Id,
+            UserId = user.Id,
+            Roles = roles,
+        };
+        _dbContext.Memberships.Add(membership);
+
+        await _dbContext.SaveChangesAsync();
+
+
+
+        return Ok();
     }
 
     [HttpGet]

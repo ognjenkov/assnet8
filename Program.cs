@@ -14,6 +14,7 @@ using FluentValidation;
 using assnet8.Middleware;
 using assnet8.Services.Auth;
 using assnet8.Services.Account;
+using assnet8.Services.Entries;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;

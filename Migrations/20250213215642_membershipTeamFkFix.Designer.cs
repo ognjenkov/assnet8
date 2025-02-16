@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using assnet8.Data;
 
@@ -11,9 +12,11 @@ using assnet8.Data;
 namespace assnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250213215642_membershipTeamFkFix")]
+    partial class membershipTeamFkFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -361,8 +364,6 @@ namespace assnet8.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TeamId");
-
                     b.HasIndex("UserId")
                         .IsUnique();
 
@@ -408,7 +409,7 @@ namespace assnet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("TeamId")
+                    b.Property<Guid>("TeamId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("UserId")
@@ -423,8 +424,7 @@ namespace assnet8.Migrations
                         .HasFilter("[LogoImageId] IS NOT NULL");
 
                     b.HasIndex("TeamId")
-                        .IsUnique()
-                        .HasFilter("[TeamId] IS NOT NULL");
+                        .IsUnique();
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -857,7 +857,7 @@ namespace assnet8.Migrations
                 {
                     b.HasOne("assnet8.Models.Team", "Team")
                         .WithMany("Memberships")
-                        .HasForeignKey("TeamId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -897,7 +897,8 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Team", "Team")
                         .WithOne("Organization")
                         .HasForeignKey("assnet8.Models.Organization", "TeamId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("assnet8.Models.User", "User")
                         .WithOne("Organization")

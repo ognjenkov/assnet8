@@ -12,7 +12,7 @@ namespace assnet8.Models
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public Guid? LogoImageId { get; set; } //jedan prema jedan zavisi od fielda tima itd.. zato ona nosi guid njihov
         public Guid UserId { get; set; }  // Organization was created by this user
-        public Guid TeamId { get; set; }  // Organization belongs to this team
+        public Guid? TeamId { get; set; }  // Organization belongs to this team
         public Image? LogoImage { get; set; }
         public List<Field> Fields { get; set; } = [];
         public List<Game> Games { get; set; } = [];

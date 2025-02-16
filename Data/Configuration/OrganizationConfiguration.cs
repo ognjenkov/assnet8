@@ -12,46 +12,45 @@ namespace assnet8.Data.Configuration
         {
             builder.HasIndex(l => l.LogoImageId).IsUnique();
             builder.HasIndex(l => l.UserId).IsUnique();
-            builder.HasIndex(l => l.TeamId).IsUnique();
 
-       //      // Configure one-to-one relationship with LogoImage
-       //      builder.HasOne(o => o.LogoImage)
-       //             .WithOne(i => i.Organization) // Assuming Image does not have a navigation property back to Organization
-       //             .HasForeignKey<Organization>(o => o.LogoImageId)
-       //             .OnDelete(DeleteBehavior.Cascade); // Delete LogoImage when Organization is deleted
+            //      // Configure one-to-one relationship with LogoImage
+            //      builder.HasOne(o => o.LogoImage)
+            //             .WithOne(i => i.Organization) // Assuming Image does not have a navigation property back to Organization
+            //             .HasForeignKey<Organization>(o => o.LogoImageId)
+            //             .OnDelete(DeleteBehavior.Cascade); // Delete LogoImage when Organization is deleted
 
-       //      // Configure one-to-many relationship with Game
-       //      builder.HasMany(o => o.Games)
-       //             .WithOne(g => g.Organization)
-       //             .HasForeignKey(g => g.OrganizationId)
-       //             .OnDelete(DeleteBehavior.Cascade); // Delete all Games when Organization is deleted
+            //      // Configure one-to-many relationship with Game
+            //      builder.HasMany(o => o.Games)
+            //             .WithOne(g => g.Organization)
+            //             .HasForeignKey(g => g.OrganizationId)
+            //             .OnDelete(DeleteBehavior.Cascade); // Delete all Games when Organization is deleted
 
-       //      // Configure many-to-one relationship with Field (restrict delete if Fields exist)
-       //      builder.HasMany(o => o.Fields)
-       //             .WithOne(f => f.Organization)
-       //             .HasForeignKey(f => f.OrganizationId)
-       //             .OnDelete(DeleteBehavior.Restrict); // Prevent Organization deletion if Fields exist
+            //      // Configure many-to-one relationship with Field (restrict delete if Fields exist)
+            //      builder.HasMany(o => o.Fields)
+            //             .WithOne(f => f.Organization)
+            //             .HasForeignKey(f => f.OrganizationId)
+            //             .OnDelete(DeleteBehavior.Restrict); // Prevent Organization deletion if Fields exist
 
-       //      // Configure many-to-one relationship with Service (restrict delete if Services exist)
-       //      builder.HasMany(o => o.Services)
-       //             .WithOne(s => s.Organization)
-       //             .HasForeignKey(s => s.OrganizationId)
-       //             .OnDelete(DeleteBehavior.Restrict); // Prevent Organization deletion if Services exist
+            //      // Configure many-to-one relationship with Service (restrict delete if Services exist)
+            //      builder.HasMany(o => o.Services)
+            //             .WithOne(s => s.Organization)
+            //             .HasForeignKey(s => s.OrganizationId)
+            //             .OnDelete(DeleteBehavior.Restrict); // Prevent Organization deletion if Services exist
 
-       // builder.HasOne(l => l.Gallery)
-       //      .WithOne(g => g.Listing)
-       //      .HasForeignKey<Listing>(l => l.GalleryId)
-       //      .OnDelete(DeleteBehavior.SetNull);
+            // builder.HasOne(l => l.Gallery)
+            //      .WithOne(g => g.Listing)
+            //      .HasForeignKey<Listing>(l => l.GalleryId)
+            //      .OnDelete(DeleteBehavior.SetNull);
 
-       //      builder.HasOne(l => l.Location)
-       //      .WithMany(l => l.Listings)
-       //      .HasForeignKey(l => l.LocationId)
-       //      .OnDelete(DeleteBehavior.SetNull);
+            //      builder.HasOne(l => l.Location)
+            //      .WithMany(l => l.Listings)
+            //      .HasForeignKey(l => l.LocationId)
+            //      .OnDelete(DeleteBehavior.SetNull);
 
-       //      builder.HasOne(l => l.User)
-       //      .WithMany(u => u.Listings)
-       //      .HasForeignKey(l => l.UserId)
-       //      .OnDelete(DeleteBehavior.Cascade);
+            //      builder.HasOne(l => l.User)
+            //      .WithMany(u => u.Listings)
+            //      .HasForeignKey(l => l.UserId)
+            //      .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(o => o.LogoImage)
             .WithOne(i => i.Organization)

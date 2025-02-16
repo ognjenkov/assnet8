@@ -27,7 +27,7 @@ namespace assnet8.Data.Configuration
 
             builder.HasOne(m => m.Team)
             .WithMany(t => t.Memberships)
-            .HasForeignKey(m => m.UserId)
+            .HasForeignKey(m => m.TeamId)
             .OnDelete(DeleteBehavior.Cascade);
         }
     }
