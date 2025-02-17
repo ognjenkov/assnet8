@@ -49,13 +49,13 @@ public class AccountController : BaseController
                 Title = l.Title,
                 ThumbnailImage = l.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = l.ThumbnailImage.Url
+                    Url = l.ThumbnailImage.Id.ToString()
                 },
             }).ToList(),
             EntriesNumber = user.Entries.Count,
             ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
             {
-                Url = user.ProfileImage.Url
+                Url = user.ProfileImage.Id.ToString()
             },
             Membership = user.Membership == null ? null : new MembershipSimpleDto
             {
@@ -67,7 +67,7 @@ public class AccountController : BaseController
                     Name = user.Membership.Team!.Name,
                     LogoImage = user.Membership.Team.LogoImage == null ? null : new ImageSimpleDto
                     {
-                        Url = user.Membership.Team.LogoImage.Url
+                        Url = user.Membership.Team.LogoImage.Id.ToString()
                     }
                 }
             }
@@ -100,7 +100,7 @@ public class AccountController : BaseController
             CreateDateTime = organization.CreateDateTime,
             LogoImage = organization.LogoImage == null ? null : new ImageSimpleDto
             {
-                Url = organization.LogoImage.Url
+                Url = organization.LogoImage.Id.ToString()
             },
             Team = organization.Team == null ? null : new TeamSimpleDto
             {
@@ -108,7 +108,7 @@ public class AccountController : BaseController
                 Name = organization.Team.Name,
                 LogoImage = organization.Team.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = organization.Team.LogoImage.Url
+                    Url = organization.Team.LogoImage.Id.ToString()
                 }
             },
             Fields = organization.Fields?.Select(f => new FieldSimpleDto
@@ -117,7 +117,7 @@ public class AccountController : BaseController
                 Name = f.Name,
                 ThumbnailImage = f.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = f.ThumbnailImage.Url
+                    Url = f.ThumbnailImage.Id.ToString()
                 },
                 GoogleMapsLink = f.GoogleMapsLink
             }).ToList() ?? [],
@@ -134,7 +134,7 @@ public class AccountController : BaseController
                 CreatedDateTime = s.CreatedDateTime,
                 ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = s.ThumbnailImage.Url
+                    Url = s.ThumbnailImage.Id.ToString()
                 }
             }).ToList() ?? []
         });
@@ -165,12 +165,12 @@ public class AccountController : BaseController
                 Username = team.Creator!.Username,
                 ProfileImage = team.Creator.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = team.Creator.ProfileImage.Url
+                    Url = team.Creator.ProfileImage.Id.ToString()
                 }
             },
             LogoImage = team.LogoImage == null ? null : new ImageSimpleDto
             {
-                Url = team.LogoImage.Url
+                Url = team.LogoImage.Id.ToString()
             },
             Memberships = team.Memberships.Select(m => new MembershipSimpleDto
             {
@@ -182,7 +182,7 @@ public class AccountController : BaseController
                     Username = m.User!.Username,
                     ProfileImage = m.User.ProfileImage == null ? null : new ImageSimpleDto
                     {
-                        Url = m.User.ProfileImage.Url
+                        Url = m.User.ProfileImage.Id.ToString()
                     }
                 }
             }).ToList(),
@@ -195,8 +195,8 @@ public class AccountController : BaseController
         });
     }
 
-    [HttpGet("card/{userId}")]
-    public async Task<IActionResult> GetAccountCard([FromQuery] GetAccountCardRequestDto request)
+    [HttpGet("card/{UserId}")]
+    public async Task<IActionResult> GetAccountCard([FromRoute] GetAccountCardRequestDto request)
     {
         var user = await _accountService.GetAccountFromUserId(request.UserId);
         if (user == null) return NotFound("User not found");
@@ -207,7 +207,7 @@ public class AccountController : BaseController
             Username = user.Username,
             ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
             {
-                Url = user.ProfileImage.Url
+                Url = user.ProfileImage.Id.ToString()
             },
             Services = user.Services?.Select(s => new ServiceSimpleDto
             {
@@ -216,7 +216,7 @@ public class AccountController : BaseController
                 CreatedDateTime = s.CreatedDateTime,
                 ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = s.ThumbnailImage.Url
+                    Url = s.ThumbnailImage.Id.ToString()
                 }
             }).ToList() ?? [],
             Organization = user.Organization == null ? null : new OrganizationSimpleDto
@@ -225,7 +225,7 @@ public class AccountController : BaseController
                 Name = user.Organization.Name,
                 LogoImage = user.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = user.Organization.LogoImage.Url
+                    Url = user.Organization.LogoImage.Id.ToString()
                 }
             },
             Membership = user.Membership == null ? null : new MembershipSimpleDto
@@ -238,7 +238,7 @@ public class AccountController : BaseController
                     Name = user.Membership.Team.Name,
                     LogoImage = user.Membership.Team.LogoImage == null ? null : new ImageSimpleDto
                     {
-                        Url = user.Membership.Team.LogoImage.Url
+                        Url = user.Membership.Team.LogoImage.Id.ToString()
                     }
                 },
             }

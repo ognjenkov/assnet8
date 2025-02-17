@@ -15,7 +15,7 @@ namespace assnet8.Dtos.Listings.Request
         public GetListingRequestDtoValidator()
         {
             RuleFor(x => x.ListingId)
-                .NotEmpty().WithMessage("FieldId is required");
+                .NotEmpty().WithMessage("ListingId is required");
         }
     }
 }

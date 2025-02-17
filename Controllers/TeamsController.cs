@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using assnet8.Dtos.Teams.Request;
+using assnet8.Dtos.Teams.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -53,19 +54,36 @@ public class TeamsController : BaseController
             UserId = user.Id,
             Roles = roles,
         };
-        _dbContext.Memberships.Add(membership);
+        _dbContext.Memberships.Add(membership);//TODO mozda AddAsync
 
         await _dbContext.SaveChangesAsync();
 
-
-
-        return Ok();
+        return StatusCode(201, team.Id);
     }
 
     [HttpGet]
-    public IActionResult GetTeams()
+    public async Task<IActionResult> GetTeams()
     {
-        return Ok("Get teams");
+        var teams = await _dbContext.Teams
+                                        .Include(t => t.LogoImage)
+                                        .Include(t => t.Memberships)
+                                        .Include(t => t.LogoImage)
+                                        .ToListAsync();
+
+        return Ok(teams.Select(t => new GetTeamsResponseDto
+        {
+            Id = t.Id,
+            Name = t.Name,
+            LogoImage = t.LogoImage == null ? null : new ImageSimpleDto
+            {
+                Url = t.LogoImage.Id.ToString()
+            },
+            Location = t.Location == null ? null : new LocationSimpleDto
+            {
+                Id = t.Location.Id,
+                Region = t.Location.Region
+            }
+        }));
     }
 
     [Authorize]
@@ -84,17 +102,99 @@ public class TeamsController : BaseController
         return Ok("delete team");
     }
 
-    [HttpGet("{teamId}")]
-    public IActionResult GetTeam([FromQuery] string teamId)
+    [HttpGet("{TeamId}")]
+    public async Task<IActionResult> GetTeam([FromRoute] GetTeamRequestDto request)
     {
-        //na frontu proveravas da li je clan i dal ima role i onda ce pisati edit dugme, mislim barem
-        return Ok("Get team " + teamId);
+        var team = await _dbContext.Teams
+                                .Where(t => t.Id == request.TeamId)
+                                .Include(t => t.Galleries)
+                                    .ThenInclude(g => g!.Images)
+                                .Include(t => t.Galleries)
+                                    .ThenInclude(g => g!.User)
+                                        .ThenInclude(u => u!.ProfileImage)
+                                .Include(t => t.Organization)
+                                    .ThenInclude(o => o!.LogoImage)
+                                .Include(t => t.Location)
+                                .Include(t => t.LogoImage)
+                                .Include(t => t.Memberships)
+                                    .ThenInclude(m => m.User)
+                                        .ThenInclude(u => u!.ProfileImage)
+                                .Include(t => t.Creator)
+                                    .ThenInclude(u => u!.ProfileImage)
+                                .FirstOrDefaultAsync();
+
+        if (team == null) return NotFound("Team not found");
+
+        return Ok(new GetTeamResponseDto
+        {
+            Id = team.Id,
+            Name = team.Name,
+            Galleries = team.Galleries.Select(g => new GallerySimpleDto
+            {
+                Title = g.Title,
+                Images = g.Images.Select(i => new ImageSimpleDto
+                {
+                    Url = i.Id.ToString()
+                }).ToList(),
+                CreateDateTime = g.CreateDateTime,
+                User = g.User == null ? null : new UserSimpleDto
+                {
+                    Id = g.User.Id,
+                    Username = g.User.Username,
+                    ProfileImage = g.User.ProfileImage == null ? null : new ImageSimpleDto
+                    {
+                        Url = g.User.ProfileImage.Id.ToString()
+                    }
+                }
+            }).ToList(),
+            Organization = team.Organization == null ? null : new OrganizationSimpleDto
+            {
+                Id = team.Organization.Id,
+                Name = team.Organization.Name,
+                LogoImage = team.Organization.LogoImage == null ? null : new ImageSimpleDto
+                {
+                    Url = team.Organization.LogoImage.Id.ToString()
+                }
+            },
+            Creator = team.Creator == null ? null : new UserSimpleDto
+            {
+                Id = team.Creator.Id,
+                Username = team.Creator.Username,
+                ProfileImage = team.Creator.ProfileImage == null ? null : new ImageSimpleDto
+                {
+                    Url = team.Creator.ProfileImage.Id.ToString()
+                }
+            },
+            LogoImage = team.LogoImage == null ? null : new ImageSimpleDto
+            {
+                Url = team.LogoImage.Id.ToString()
+            },
+            Location = team.Location == null ? null : new LocationSimpleDto
+            {
+                Id = team.Location.Id,
+                Region = team.Location.Region
+            },
+            Memberships = team.Memberships.Select(m => new MembershipSimpleDto
+            {
+                CreateDateTime = m.CreateDateTime,
+                Roles = [],
+                User = new UserSimpleDto
+                {
+                    Id = m.UserId,
+                    Username = m.User!.Username,
+                    ProfileImage = m.User.ProfileImage == null ? null : new ImageSimpleDto
+                    {
+                        Url = m.User.ProfileImage.Id.ToString()
+                    }
+                }
+            }).ToList()
+        });
     }
 
-    [HttpGet("members/{teamId}")]
-    public IActionResult GetTeamMembers([FromQuery] string teamId)
+    [HttpGet("members/{TeamId}")]
+    public IActionResult GetTeamMembers([FromRoute] string TeamId)
     {
-        return Ok("Get team members " + teamId);
+        return Ok("Get team members " + TeamId);
     }
 
     [Authorize]

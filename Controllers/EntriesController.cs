@@ -19,8 +19,8 @@ public class EntriesController : BaseController
     {
         this._dbContext = dbContext;
     }
-    [HttpGet("game/{gameId}")]
-    public IActionResult GetGameEntries([FromQuery] GetGameEntriesRequestDto request)
+    [HttpGet("game/{GameId}")]
+    public IActionResult GetGameEntries([FromRoute] GetGameEntriesRequestDto request)
     {
         var entries = _dbContext.Entries.Where(e => e.GameId == request.GameId)
                                         .Include(e => e.User!)
@@ -39,7 +39,7 @@ public class EntriesController : BaseController
                 Username = e.User.Username,
                 ProfileImage = e.User.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = e.User.ProfileImage.Url
+                    Url = e.User.ProfileImage.Id.ToString()
                 }
             }
         }).ToList());

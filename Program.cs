@@ -15,6 +15,7 @@ using assnet8.Middleware;
 using assnet8.Services.Auth;
 using assnet8.Services.Account;
 using assnet8.Services.Entries;
+using assnet8.Services.Images;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -57,6 +58,7 @@ builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwa
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IImageService, ImageService>();
 //AddScoped -> create new instance for every request
 //AddTransient -> new instance for every controller and every service for every request
 //AddSingleton -> only one instance for every request

@@ -55,14 +55,14 @@ public class GamesController : BaseController
                 GoogleMapsLink = g.Field.GoogleMapsLink,
                 ThumbnailImage = g.Field.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = g.Field.ThumbnailImage.Url
+                    Url = g.Field.ThumbnailImage.Id.ToString()
                 }
             }
         }));
     }
 
-    [HttpGet("{gameId}")]
-    public async Task<IActionResult> GetGame([FromQuery] GetGameRequestDto request)
+    [HttpGet("{GameId}")]
+    public async Task<IActionResult> GetGame([FromRoute] GetGameRequestDto request)
     {
         //ako je logged in dobija i prijave, ako ne samo game
         var game = await _dbContext.Games
@@ -88,7 +88,7 @@ public class GamesController : BaseController
                 Name = game.Organization.Name,
                 LogoImage = game.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = game.Organization.LogoImage.Url
+                    Url = game.Organization.LogoImage.Id.ToString()
                 }
             },
             Tags = game.Tags,
@@ -99,7 +99,7 @@ public class GamesController : BaseController
                 GoogleMapsLink = game.Field.GoogleMapsLink,
                 ThumbnailImage = game.Field.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = game.Field.ThumbnailImage.Url
+                    Url = game.Field.ThumbnailImage.Id.ToString()
                 }
             }
         });

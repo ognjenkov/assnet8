@@ -7,25 +7,34 @@ using Microsoft.AspNetCore.Mvc;
 namespace assnet8.Controllers;
 public class TagsController : BaseController
 {
+    private readonly AppDbContext _dbContext;
 
-    [HttpGet]
-    public IActionResult GetTags()
+    public TagsController(AppDbContext dbContext)
     {
-        return Ok("Get tags");
+        this._dbContext = dbContext;
+    }
+    [HttpGet]
+    public async Task<IActionResult> GetTags()
+    {
+        var tags = await _dbContext.Tags.ToListAsync();
+        return Ok(tags);
     }
     [HttpGet("service")]
-    public IActionResult GetServiceTags()
+    public async Task<IActionResult> GetServiceTags()
     {
-        return Ok("Get service tags");
+        var tags = await _dbContext.Tags.Where(t => t.Type == TagType.Service).ToListAsync();
+        return Ok(tags);
     }
     [HttpGet("game")]
-    public IActionResult GetGameTags()
+    public async Task<IActionResult> GetGameTags()
     {
-        return Ok("Get game tags");
+        var tags = await _dbContext.Tags.Where(t => t.Type == TagType.Game).ToListAsync();
+        return Ok(tags);
     }
     [HttpGet("listing")]
-    public IActionResult GetListingTags()
+    public async Task<IActionResult> GetListingTags()
     {
-        return Ok("Get listing tags");
+        var tags = await _dbContext.Tags.Where(t => t.Type == TagType.Listing).ToListAsync();
+        return Ok(tags);
     }
 }

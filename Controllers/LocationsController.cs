@@ -7,10 +7,19 @@ using Microsoft.AspNetCore.Mvc;
 namespace assnet8.Controllers;
 public class LocationsController : BaseController
 {
+    private readonly AppDbContext _dbContext;
 
-    [HttpGet]
-    public IActionResult GetLocations()
+    public LocationsController(AppDbContext dbContext)
     {
-        return Ok("Get locations");
+        this._dbContext = dbContext;
+    }
+    [HttpGet]
+    public async Task<IActionResult> GetLocations()
+    {
+        var locations = await _dbContext.Locations
+                                            .Include(l => l.Municipalities)
+                                            .ToListAsync();
+
+        return Ok(locations);
     }
 }

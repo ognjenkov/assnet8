@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using assnet8.Dtos.Auth;
 using assnet8.Services.Auth;
+using assnet8.Services.Images;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,13 @@ public class AuthController : BaseController
 {
     private readonly AppDbContext _dbContext;
     private readonly IJwtService _jwtService;
+    private readonly IImageService _imageService;
 
-    public AuthController(AppDbContext dbContext, IJwtService jwtService)
+    public AuthController(AppDbContext dbContext, IJwtService jwtService, IImageService imageService)
     {
         this._jwtService = jwtService;
         this._dbContext = dbContext;
+        this._imageService = imageService;
     }
 
     [HttpPost("Login")]
@@ -31,6 +34,7 @@ public class AuthController : BaseController
             .Include(u => u.Organization)
             .Include(u => u.ProfileImage)
             .FirstOrDefaultAsync();// ovde si stao, razocaran jer ti rolovi nisu niz
+                                   //kako mi ovaj glupi kurac da error a account service ne??
 
         if (user == null)
         {
@@ -74,7 +78,10 @@ public class AuthController : BaseController
             AccessToken = accessToken,
             RefreshTokenApp = refreshTokenApp,
             Username = user.Username,
-            ProfileImage = user.ProfileImage,
+            ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
+            {
+                Url = user.ProfileImage.Id.ToString()
+            },
             Roles = roles,
             TeamId = user.Membership?.TeamId ?? null,
             OrganizationId = user.Organization?.Id ?? null
@@ -179,7 +186,10 @@ public class AuthController : BaseController
             AccessToken = newAccessToken,
             RefreshTokenApp = newRefreshTokenApp,
             Username = user.Username,
-            ProfileImage = user.ProfileImage,
+            ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
+            {
+                Url = user.ProfileImage.Id.ToString()
+            },
             Roles = roles,
             TeamId = user.Membership?.TeamId ?? null,
             OrganizationId = user.Organization?.Id ?? null
@@ -221,7 +231,7 @@ public class AuthController : BaseController
     }
 
     [HttpPost("Register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+    public async Task<IActionResult> Register([FromForm] RegisterRequestDto request)
     {
         try
         {
@@ -235,9 +245,28 @@ public class AuthController : BaseController
                 Username = request.Username,
                 Password = hashedPassword
             };
-
             await _dbContext.Users.AddAsync(user);
             await _dbContext.SaveChangesAsync();
+
+
+            if (request.ProfileImage != null)
+            {
+                try
+                {
+                    var image = await _imageService.UploadImage(user, request.ProfileImage);
+                    await _dbContext.Images.AddAsync(image);
+
+                    user.ProfileImageId = image.Id;
+
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (System.Exception)
+                {
+                    System.Console.WriteLine("Failed to upload profile image");
+                    // throw;
+                }
+
+            }
 
             return StatusCode(201, new { message = $"New user {request.Username} created!" });
         }

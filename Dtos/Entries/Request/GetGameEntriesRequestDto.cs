@@ -15,7 +15,7 @@ namespace assnet8.Dtos.Entries.Request
         public GetGameEntriesRequestDtoValidator()
         {
             RuleFor(x => x.GameId)
-                .NotEmpty().WithMessage("UserId is required");
+                .NotEmpty().WithMessage("GameId is required");
         }
     }
 }

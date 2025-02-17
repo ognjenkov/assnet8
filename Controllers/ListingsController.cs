@@ -39,7 +39,7 @@ public class ListingsController : BaseController
             Price = l.Price,
             ThumbnailImage = l.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = l.ThumbnailImage.Url
+                Url = l.ThumbnailImage.Id.ToString()
             },
             Tags = l.Tags,
             Location = l.Location == null ? null : new LocationSimpleDto
@@ -50,8 +50,8 @@ public class ListingsController : BaseController
         }));
     }
 
-    [HttpGet("{listingId}")]
-    public async Task<IActionResult> GetListing([FromQuery] GetListingRequestDto request)
+    [HttpGet("{ListingId}")]
+    public async Task<IActionResult> GetListing([FromRoute] GetListingRequestDto request)
     {
         var listing = await _dbContext.Listings
                                     .Where(l => l.Id == request.ListingId)
@@ -84,12 +84,12 @@ public class ListingsController : BaseController
                 Username = listing.User.Username,
                 ProfileImage = listing.User.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = listing.User.ProfileImage.Url
+                    Url = listing.User.ProfileImage.Id.ToString()
                 }
             },
             ThumbnailImage = listing.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = listing.ThumbnailImage.Url
+                Url = listing.ThumbnailImage.Id.ToString()
             },
             Tags = listing.Tags,
             Gallery = listing.Gallery == null ? null : new GallerySimpleDto
@@ -98,7 +98,7 @@ public class ListingsController : BaseController
                 CreateDateTime = listing.Gallery.CreateDateTime,
                 Images = listing.Gallery.Images.Select(i => new ImageSimpleDto
                 {
-                    Url = i.Url
+                    Url = i.Id.ToString()
                 }).ToList() ?? [],
             },
             Location = listing.Location == null ? null : new LocationSimpleDto

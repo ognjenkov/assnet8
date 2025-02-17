@@ -37,7 +37,7 @@ public class FieldsController : BaseController
             GoogleMapsLink = f.GoogleMapsLink,
             ThumbnailImage = f.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = f.ThumbnailImage.Url
+                Url = f.ThumbnailImage.Id.ToString()
             },
             Location = f.Location == null ? null : new LocationSimpleDto
             {
@@ -50,7 +50,7 @@ public class FieldsController : BaseController
                 Name = f.Organization.Name,
                 LogoImage = f.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = f.Organization.LogoImage.Url
+                    Url = f.Organization.LogoImage.Id.ToString()
                 }
             }
         }));
@@ -64,8 +64,8 @@ public class FieldsController : BaseController
         return Ok("Get owned fields");
     }
 
-    [HttpGet("{fieldId}")]
-    public async Task<IActionResult> GetField([FromQuery] GetFieldRequestDto request)
+    [HttpGet("{FieldId}")]
+    public async Task<IActionResult> GetField([FromRoute] GetFieldRequestDto request)
     {
         //vratices id organizacije, na frontu ce se proveriti dal je taj id jednak sa idjem tvoje organizacije onda ce da se provere tvoji rolovi i onda ces ima dugme edit ili delete itd...
         var field = await _dbContext.Fields.Where(f => f.Id == request.FieldId)
@@ -90,7 +90,7 @@ public class FieldsController : BaseController
             GoogleMapsLink = field.GoogleMapsLink,
             ThumbnailImage = field.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = field.ThumbnailImage.Url
+                Url = field.ThumbnailImage.Id.ToString()
             },
             Location = field.Location == null ? null : new LocationSimpleDto
             {
@@ -103,7 +103,7 @@ public class FieldsController : BaseController
                 Name = field.Organization.Name,
                 LogoImage = field.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = field.Organization.LogoImage.Url
+                    Url = field.Organization.LogoImage.Id.ToString()
                 }
             },
             Gallery = field.Gallery == null ? null : new GallerySimpleDto
@@ -111,7 +111,7 @@ public class FieldsController : BaseController
                 Title = field.Gallery.Title,
                 Images = field.Gallery.Images.Select(i => new ImageSimpleDto
                 {
-                    Url = i.Url
+                    Url = i.Id.ToString()
                 }).ToList(),
                 CreateDateTime = field.Gallery.CreateDateTime,
                 User = field.Gallery.User == null ? null : new UserSimpleDto
@@ -120,7 +120,7 @@ public class FieldsController : BaseController
                     Username = field.Gallery.User.Username,
                     ProfileImage = field.Gallery.User.ProfileImage == null ? null : new ImageSimpleDto
                     {
-                        Url = field.Gallery.User.ProfileImage.Url
+                        Url = field.Gallery.User.ProfileImage.Id.ToString()
                     }
                 }
             },

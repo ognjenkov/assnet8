@@ -12,6 +12,7 @@ namespace assnet8.Dtos.Auth
         public required string Name { get; set; }
         public required string Email { get; set; }
         public required string Password { get; set; }
+        public IFormFile? ProfileImage { get; set; }
     }
 
     public class RegisterRequestDtoValidator : AbstractValidator<RegisterRequestDto>
@@ -45,6 +46,11 @@ namespace assnet8.Dtos.Auth
                 .NotEmpty().WithMessage("Password is required")
                 .MinimumLength(3).WithMessage("Password must be at least 3 characters")
                 .MaximumLength(30).WithMessage("Password must be at most 30 characters");
+
+            RuleFor(x => x.ProfileImage)
+                .Must(file => file == null || file.Length > 0).WithMessage("Image file cannot be empty")
+                .Must(file => file == null || file.Length <= 5 * 1024 * 1024).WithMessage("Image must be less than 5MB")
+                .Must(file => file == null || new[] { ".jpg", ".jpeg", ".png" }.Contains(Path.GetExtension(file.FileName).ToLower())).WithMessage("Only JPG and PNG images are allowed");
         }
 
         private async Task<bool> IsUniqueUsername(string username, CancellationToken token)

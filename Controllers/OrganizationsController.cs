@@ -69,8 +69,8 @@ public class OrganizationsController : BaseController
         return Ok("Delete organization");
     }
 
-    [HttpGet("card/{organizationId}")]
-    public async Task<IActionResult> GetOrganizationCard([FromQuery] GetOrganizationCardRequestDto request)
+    [HttpGet("card/{OrganizationId}")]
+    public async Task<IActionResult> GetOrganizationCard([FromRoute] GetOrganizationCardRequestDto request)
     {
         var organization = await _dbContext.Organizations
                             .Where(o => o.Id == request.OrganizationId)
@@ -95,7 +95,7 @@ public class OrganizationsController : BaseController
             CreateDateTime = organization.CreateDateTime,
             LogoImage = organization.LogoImage == null ? null : new ImageSimpleDto
             {
-                Url = organization.LogoImage.Url
+                Url = organization.LogoImage.Id.ToString()
             },
             Fields = organization.Fields.Select(f => new FieldSimpleDto
             {
@@ -104,7 +104,7 @@ public class OrganizationsController : BaseController
                 GoogleMapsLink = f.GoogleMapsLink,
                 ThumbnailImage = f.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = f.ThumbnailImage.Url
+                    Url = f.ThumbnailImage.Id.ToString()
                 }
             }).ToList(),
             Games = organization.Games.Select(g => new GameSimpleDto
@@ -119,7 +119,7 @@ public class OrganizationsController : BaseController
                 Title = s.Title,
                 ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = s.ThumbnailImage.Url
+                    Url = s.ThumbnailImage.Id.ToString()
                 }
             }).ToList(),
             Team = organization.Team == null ? null : new TeamSimpleDto
@@ -128,7 +128,7 @@ public class OrganizationsController : BaseController
                 Name = organization.Team.Name,
                 LogoImage = organization.Team.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = organization.Team.LogoImage.Url
+                    Url = organization.Team.LogoImage.Id.ToString()
                 }
             },
             User = organization.User == null ? null : new UserSimpleDto
@@ -137,7 +137,7 @@ public class OrganizationsController : BaseController
                 Username = organization.User.Username,
                 ProfileImage = organization.User.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = organization.User.ProfileImage.Url
+                    Url = organization.User.ProfileImage.Id.ToString()
                 }
             }
         });
