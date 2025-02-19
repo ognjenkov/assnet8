@@ -76,7 +76,7 @@ public class TeamsController : BaseController
             Name = t.Name,
             LogoImage = t.LogoImage == null ? null : new ImageSimpleDto
             {
-                Url = t.LogoImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(t.LogoImage.Id)
             },
             Location = t.Location == null ? null : new LocationSimpleDto
             {
@@ -134,7 +134,7 @@ public class TeamsController : BaseController
                 Title = g.Title,
                 Images = g.Images.Select(i => new ImageSimpleDto
                 {
-                    Url = i.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(i.Id)
                 }).ToList(),
                 CreateDateTime = g.CreateDateTime,
                 User = g.User == null ? null : new UserSimpleDto
@@ -143,7 +143,7 @@ public class TeamsController : BaseController
                     Username = g.User.Username,
                     ProfileImage = g.User.ProfileImage == null ? null : new ImageSimpleDto
                     {
-                        Url = g.User.ProfileImage.Id.ToString()
+                        Url = Utils.Utils.GenerateImageFrontendLink(g.User.ProfileImage.Id)
                     }
                 }
             }).ToList(),
@@ -153,7 +153,7 @@ public class TeamsController : BaseController
                 Name = team.Organization.Name,
                 LogoImage = team.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = team.Organization.LogoImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(team.Organization.LogoImage.Id)
                 }
             },
             Creator = team.Creator == null ? null : new UserSimpleDto
@@ -162,12 +162,12 @@ public class TeamsController : BaseController
                 Username = team.Creator.Username,
                 ProfileImage = team.Creator.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = team.Creator.ProfileImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(team.Creator.ProfileImage.Id)
                 }
             },
             LogoImage = team.LogoImage == null ? null : new ImageSimpleDto
             {
-                Url = team.LogoImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(team.LogoImage.Id)
             },
             Location = team.Location == null ? null : new LocationSimpleDto
             {
@@ -184,7 +184,7 @@ public class TeamsController : BaseController
                     Username = m.User!.Username,
                     ProfileImage = m.User.ProfileImage == null ? null : new ImageSimpleDto
                     {
-                        Url = m.User.ProfileImage.Id.ToString()
+                        Url = Utils.Utils.GenerateImageFrontendLink(m.User.ProfileImage.Id)
                     }
                 }
             }).ToList()

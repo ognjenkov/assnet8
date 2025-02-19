@@ -80,7 +80,7 @@ public class AuthController : BaseController
             Username = user.Username,
             ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
             {
-                Url = user.ProfileImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(user.ProfileImage.Id)
             },
             Roles = roles,
             TeamId = user.Membership?.TeamId ?? null,
@@ -188,7 +188,7 @@ public class AuthController : BaseController
             Username = user.Username,
             ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
             {
-                Url = user.ProfileImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(user.ProfileImage.Id)
             },
             Roles = roles,
             TeamId = user.Membership?.TeamId ?? null,

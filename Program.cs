@@ -3,6 +3,7 @@ global using assnet8.Models;
 global using assnet8.Data;
 global using assnet8.Identity;
 global using assnet8.Dtos.Simple;
+global using assnet8.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;

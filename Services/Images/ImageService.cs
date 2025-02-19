@@ -15,31 +15,38 @@ namespace assnet8.Services.Images
             this._dbContext = dbContext;
             this._awsUrl = configuration["AWS:S3:url"] ?? "string";
         }
-        public Task DeleteImage(Guid imageId)
+        public Task DeleteImage(Image image)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Image> GetImage(Guid imageId)
+        public async Task<(byte[] ImageData, string ContentType)> GetImage(Image image)
         {
-            var image = await _dbContext.Images.FirstOrDefaultAsync(i => i.Id == imageId);
-
-            if (image == null)
+            using (var httpClient = new HttpClient())
             {
-                throw new Exception("Image not found.");
-            }
-            return image;
-        }
+                var imageAwsURL = _awsUrl + image.S3Id;
+                var response = await httpClient.GetAsync(imageAwsURL);
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception("Image not found.");
+                }
+
+                var imageBytes = await response.Content.ReadAsByteArrayAsync();
+                var contentType = response.Content.Headers.ContentType?.ToString() ?? "image/jpeg";
+
+                return (imageBytes, contentType);
+            }
+        }
         public async Task<Image> UploadImage(User user, IFormFile imageFile)
         {
-            var urlId = Guid.NewGuid();
-            var imageUrl = _awsUrl + urlId;
+            var S3Id = Guid.NewGuid();
+            var imageUrl = _awsUrl + S3Id;
 
             var image = new Image
             {
                 Title = imageFile.FileName,
-                Url = urlId.ToString(),
+                S3Id = S3Id,
                 Extension = Path.GetExtension(imageFile.FileName).ToLower(),
                 UserId = user.Id,
                 ProfileImageUser = user

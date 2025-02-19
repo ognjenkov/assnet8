@@ -10,45 +10,25 @@ namespace assnet8.Controllers;
 public class ImagesController : BaseController
 {
     private readonly IImageService _imageService;
-    private readonly string _awsUrl;
+    private readonly AppDbContext _dbContext;
 
-    public ImagesController(IImageService imageService, IConfiguration configuration)
+    public ImagesController(IImageService imageService, IConfiguration configuration, AppDbContext dbContext)
     {
         this._imageService = imageService;
-        this._awsUrl = configuration["AWS:S3:url"] ?? "string";
+        this._dbContext = dbContext;
     }
     [HttpGet("{ImageId}")]
     public async Task<IActionResult> GetImage([FromRoute] GetImageRequestDto request)
     {
-        string imageUrl = _awsUrl;
-        try
-        {
-            var image = await _imageService.GetImage(request.ImageId);
+        var image = await _dbContext.Images.FirstOrDefaultAsync(i => i.Id == request.ImageId);
 
-            imageUrl += image.Url;
-        }
-        catch (System.Exception)
+        if (image == null)
         {
             return NotFound("Image not found.");
         }
-        System.Console.WriteLine("Image URL: " + imageUrl);
-        using (var httpClient = new HttpClient())
-        {
-            // Fetch the image from the custom address
-            var response = await httpClient.GetAsync(imageUrl);
 
-            // If the request was successful, return the image
-            if (response.IsSuccessStatusCode)
-            {
-                var imageBytes = await response.Content.ReadAsByteArrayAsync();
-                var contentType = response.Content.Headers.ContentType?.ToString() ?? "image/jpeg";
-                System.Console.WriteLine("Content type: " + contentType);
-                return File(imageBytes, "image/png");
-            }
-            else
-            {
-                return NotFound("Image not found.");
-            }
-        }
+        var (imageData, contentType) = await _imageService.GetImage(image);
+
+        return File(imageData, contentType);
     }
 }

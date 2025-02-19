@@ -39,7 +39,7 @@ public class ListingsController : BaseController
             Price = l.Price,
             ThumbnailImage = l.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = l.ThumbnailImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(l.ThumbnailImage.Id)
             },
             Tags = l.Tags,
             Location = l.Location == null ? null : new LocationSimpleDto
@@ -84,12 +84,12 @@ public class ListingsController : BaseController
                 Username = listing.User.Username,
                 ProfileImage = listing.User.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = listing.User.ProfileImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(listing.User.ProfileImage.Id)
                 }
             },
             ThumbnailImage = listing.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = listing.ThumbnailImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(listing.ThumbnailImage.Id)
             },
             Tags = listing.Tags,
             Gallery = listing.Gallery == null ? null : new GallerySimpleDto
@@ -98,7 +98,7 @@ public class ListingsController : BaseController
                 CreateDateTime = listing.Gallery.CreateDateTime,
                 Images = listing.Gallery.Images.Select(i => new ImageSimpleDto
                 {
-                    Url = i.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(i.Id)
                 }).ToList() ?? [],
             },
             Location = listing.Location == null ? null : new LocationSimpleDto

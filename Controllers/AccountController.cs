@@ -8,16 +8,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using assnet8.Dtos.Account.Response;
 using assnet8.Dtos.Account.Request;
+using assnet8.Services.Images;
 
 namespace assnet8.Controllers;
 [Authorize]
 public class AccountController : BaseController
 {
     private readonly IAccountService _accountService;
-
-    public AccountController(IAccountService accountService)
+    private readonly IImageService _imageService;
+    public AccountController(IAccountService accountService, IImageService imageService)
     {
         this._accountService = accountService;
+        this._imageService = imageService;
     }
 
     [HttpGet("account-information")]
@@ -49,13 +51,13 @@ public class AccountController : BaseController
                 Title = l.Title,
                 ThumbnailImage = l.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = l.ThumbnailImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(l.ThumbnailImage.Id)
                 },
             }).ToList(),
             EntriesNumber = user.Entries.Count,
             ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
             {
-                Url = user.ProfileImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(user.ProfileImage.Id)
             },
             Membership = user.Membership == null ? null : new MembershipSimpleDto
             {
@@ -67,7 +69,7 @@ public class AccountController : BaseController
                     Name = user.Membership.Team!.Name,
                     LogoImage = user.Membership.Team.LogoImage == null ? null : new ImageSimpleDto
                     {
-                        Url = user.Membership.Team.LogoImage.Id.ToString()
+                        Url = Utils.Utils.GenerateImageFrontendLink(user.Membership.Team.LogoImage.Id)
                     }
                 }
             }
@@ -100,7 +102,7 @@ public class AccountController : BaseController
             CreateDateTime = organization.CreateDateTime,
             LogoImage = organization.LogoImage == null ? null : new ImageSimpleDto
             {
-                Url = organization.LogoImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(organization.LogoImage.Id)
             },
             Team = organization.Team == null ? null : new TeamSimpleDto
             {
@@ -108,7 +110,7 @@ public class AccountController : BaseController
                 Name = organization.Team.Name,
                 LogoImage = organization.Team.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = organization.Team.LogoImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(organization.Team.LogoImage.Id)
                 }
             },
             Fields = organization.Fields?.Select(f => new FieldSimpleDto
@@ -117,7 +119,7 @@ public class AccountController : BaseController
                 Name = f.Name,
                 ThumbnailImage = f.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = f.ThumbnailImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(f.ThumbnailImage.Id)
                 },
                 GoogleMapsLink = f.GoogleMapsLink
             }).ToList() ?? [],
@@ -134,7 +136,7 @@ public class AccountController : BaseController
                 CreatedDateTime = s.CreatedDateTime,
                 ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = s.ThumbnailImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(s.ThumbnailImage.Id)
                 }
             }).ToList() ?? []
         });
@@ -165,12 +167,12 @@ public class AccountController : BaseController
                 Username = team.Creator!.Username,
                 ProfileImage = team.Creator.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = team.Creator.ProfileImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(team.Creator.ProfileImage.Id)
                 }
             },
             LogoImage = team.LogoImage == null ? null : new ImageSimpleDto
             {
-                Url = team.LogoImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(team.LogoImage.Id)
             },
             Memberships = team.Memberships.Select(m => new MembershipSimpleDto
             {
@@ -182,7 +184,7 @@ public class AccountController : BaseController
                     Username = m.User!.Username,
                     ProfileImage = m.User.ProfileImage == null ? null : new ImageSimpleDto
                     {
-                        Url = m.User.ProfileImage.Id.ToString()
+                        Url = Utils.Utils.GenerateImageFrontendLink(m.User.ProfileImage.Id)
                     }
                 }
             }).ToList(),
@@ -207,7 +209,7 @@ public class AccountController : BaseController
             Username = user.Username,
             ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
             {
-                Url = user.ProfileImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(user.ProfileImage.Id)
             },
             Services = user.Services?.Select(s => new ServiceSimpleDto
             {
@@ -216,7 +218,7 @@ public class AccountController : BaseController
                 CreatedDateTime = s.CreatedDateTime,
                 ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = s.ThumbnailImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(s.ThumbnailImage.Id)
                 }
             }).ToList() ?? [],
             Organization = user.Organization == null ? null : new OrganizationSimpleDto
@@ -225,7 +227,7 @@ public class AccountController : BaseController
                 Name = user.Organization.Name,
                 LogoImage = user.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = user.Organization.LogoImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(user.Organization.LogoImage.Id)
                 }
             },
             Membership = user.Membership == null ? null : new MembershipSimpleDto
@@ -238,7 +240,7 @@ public class AccountController : BaseController
                     Name = user.Membership.Team.Name,
                     LogoImage = user.Membership.Team.LogoImage == null ? null : new ImageSimpleDto
                     {
-                        Url = user.Membership.Team.LogoImage.Id.ToString()
+                        Url = Utils.Utils.GenerateImageFrontendLink(user.Membership.Team.LogoImage.Id)
                     }
                 },
             }

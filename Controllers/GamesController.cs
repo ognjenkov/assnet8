@@ -44,7 +44,7 @@ public class GamesController : BaseController
                 Name = g.Organization.Name,
                 LogoImage = g.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = g.Organization.LogoImage.Url
+                    Url = Utils.Utils.GenerateImageFrontendLink(g.Organization.LogoImage.Id)
                 }
             },
             Tags = g.Tags,
@@ -55,7 +55,7 @@ public class GamesController : BaseController
                 GoogleMapsLink = g.Field.GoogleMapsLink,
                 ThumbnailImage = g.Field.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = g.Field.ThumbnailImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(g.Field.ThumbnailImage.Id)
                 }
             }
         }));
@@ -88,7 +88,7 @@ public class GamesController : BaseController
                 Name = game.Organization.Name,
                 LogoImage = game.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = game.Organization.LogoImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(game.Organization.LogoImage.Id)
                 }
             },
             Tags = game.Tags,
@@ -99,7 +99,7 @@ public class GamesController : BaseController
                 GoogleMapsLink = game.Field.GoogleMapsLink,
                 ThumbnailImage = game.Field.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = game.Field.ThumbnailImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(game.Field.ThumbnailImage.Id)
                 }
             }
         });

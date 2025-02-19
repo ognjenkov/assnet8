@@ -8,7 +8,7 @@ namespace assnet8.Services.Images
     public interface IImageService
     {
         public Task<Image> UploadImage(User user, IFormFile imageFile);
-        public Task<Image> GetImage(Guid imageId);
-        public Task DeleteImage(Guid imageId);
+        public Task<(byte[] ImageData, string ContentType)> GetImage(Image image);
+        public Task DeleteImage(Image image);
     }
 }

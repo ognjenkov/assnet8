@@ -39,7 +39,7 @@ public class EntriesController : BaseController
                 Username = e.User.Username,
                 ProfileImage = e.User.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = e.User.ProfileImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(e.User.ProfileImage.Id)
                 }
             }
         }).ToList());

@@ -95,7 +95,7 @@ public class OrganizationsController : BaseController
             CreateDateTime = organization.CreateDateTime,
             LogoImage = organization.LogoImage == null ? null : new ImageSimpleDto
             {
-                Url = organization.LogoImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(organization.LogoImage.Id)
             },
             Fields = organization.Fields.Select(f => new FieldSimpleDto
             {
@@ -104,7 +104,7 @@ public class OrganizationsController : BaseController
                 GoogleMapsLink = f.GoogleMapsLink,
                 ThumbnailImage = f.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = f.ThumbnailImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(f.ThumbnailImage.Id)
                 }
             }).ToList(),
             Games = organization.Games.Select(g => new GameSimpleDto
@@ -119,7 +119,7 @@ public class OrganizationsController : BaseController
                 Title = s.Title,
                 ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
-                    Url = s.ThumbnailImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(s.ThumbnailImage.Id)
                 }
             }).ToList(),
             Team = organization.Team == null ? null : new TeamSimpleDto
@@ -128,7 +128,7 @@ public class OrganizationsController : BaseController
                 Name = organization.Team.Name,
                 LogoImage = organization.Team.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = organization.Team.LogoImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(organization.Team.LogoImage.Id)
                 }
             },
             User = organization.User == null ? null : new UserSimpleDto
@@ -137,7 +137,7 @@ public class OrganizationsController : BaseController
                 Username = organization.User.Username,
                 ProfileImage = organization.User.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = organization.User.ProfileImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(organization.User.ProfileImage.Id)
                 }
             }
         });

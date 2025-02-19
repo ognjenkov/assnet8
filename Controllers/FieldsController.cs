@@ -37,7 +37,7 @@ public class FieldsController : BaseController
             GoogleMapsLink = f.GoogleMapsLink,
             ThumbnailImage = f.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = f.ThumbnailImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(f.ThumbnailImage.Id)
             },
             Location = f.Location == null ? null : new LocationSimpleDto
             {
@@ -50,7 +50,7 @@ public class FieldsController : BaseController
                 Name = f.Organization.Name,
                 LogoImage = f.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = f.Organization.LogoImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(f.Organization.LogoImage.Id)
                 }
             }
         }));
@@ -90,7 +90,7 @@ public class FieldsController : BaseController
             GoogleMapsLink = field.GoogleMapsLink,
             ThumbnailImage = field.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = field.ThumbnailImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(field.ThumbnailImage.Id)
             },
             Location = field.Location == null ? null : new LocationSimpleDto
             {
@@ -103,7 +103,7 @@ public class FieldsController : BaseController
                 Name = field.Organization.Name,
                 LogoImage = field.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = field.Organization.LogoImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(field.Organization.LogoImage.Id)
                 }
             },
             Gallery = field.Gallery == null ? null : new GallerySimpleDto
@@ -111,7 +111,7 @@ public class FieldsController : BaseController
                 Title = field.Gallery.Title,
                 Images = field.Gallery.Images.Select(i => new ImageSimpleDto
                 {
-                    Url = i.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(i.Id)
                 }).ToList(),
                 CreateDateTime = field.Gallery.CreateDateTime,
                 User = field.Gallery.User == null ? null : new UserSimpleDto
@@ -120,7 +120,7 @@ public class FieldsController : BaseController
                     Username = field.Gallery.User.Username,
                     ProfileImage = field.Gallery.User.ProfileImage == null ? null : new ImageSimpleDto
                     {
-                        Url = field.Gallery.User.ProfileImage.Id.ToString()
+                        Url = Utils.Utils.GenerateImageFrontendLink(field.Gallery.User.ProfileImage.Id)
                     }
                 }
             },

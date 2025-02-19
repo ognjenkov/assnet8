@@ -10,6 +10,7 @@ namespace assnet8.Data.Configuration
        {
               public void Configure(EntityTypeBuilder<Image> builder)
               {
+                     builder.HasIndex(i => i.S3Id).IsUnique();
                      // // Configure one-to-one relationship with User (ProfileImage)
                      // builder.HasOne(i => i.ProfileImageUser)
                      //        .WithOne(u => u.ProfileImage)
@@ -26,7 +27,7 @@ namespace assnet8.Data.Configuration
                             .WithMany(g => g.Images)
                             .HasForeignKey(i => i.GalleryId)
                             .OnDelete(DeleteBehavior.Cascade);
-                     
+
                      // // Configure one-to-one relationship with Field
                      // builder.HasOne(i => i.Field)
                      //        .WithOne(f => f.ThumbnailImage)

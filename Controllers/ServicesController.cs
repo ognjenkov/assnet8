@@ -44,7 +44,7 @@ public class ServicesController : BaseController
             },
             ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = s.ThumbnailImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(s.ThumbnailImage.Id)
             },
             Tags = s.Tags,
             Organization = s.Organization == null ? null : new OrganizationSimpleDto
@@ -53,7 +53,7 @@ public class ServicesController : BaseController
                 Name = s.Organization.Name,
                 LogoImage = s.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = s.Organization.LogoImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(s.Organization.LogoImage.Id)
                 }
             },
             Location = s.Location == null ? null : new LocationSimpleDto
@@ -147,12 +147,12 @@ public class ServicesController : BaseController
                 Username = service.CreatedByUser.Username,
                 ProfileImage = service.CreatedByUser.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = service.CreatedByUser.ProfileImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(service.CreatedByUser.ProfileImage.Id)
                 }
             },
             ThumbnailImage = service.ThumbnailImage == null ? null : new ImageSimpleDto
             {
-                Url = service.ThumbnailImage.Id.ToString()
+                Url = Utils.Utils.GenerateImageFrontendLink(service.ThumbnailImage.Id)
             },
             Tags = service.Tags,
             Organization = service.Organization == null ? null : new OrganizationSimpleDto
@@ -161,7 +161,7 @@ public class ServicesController : BaseController
                 Name = service.Organization.Name,
                 LogoImage = service.Organization.LogoImage == null ? null : new ImageSimpleDto
                 {
-                    Url = service.Organization.LogoImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(service.Organization.LogoImage.Id)
                 }
             },
             Location = service.Location == null ? null : new LocationSimpleDto

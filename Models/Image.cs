@@ -8,19 +8,14 @@ namespace assnet8.Models
     public class Image
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public required string Url { get; set; }
+        public required Guid S3Id { get; set; }
         public required string Title { get; set; }
         public required string Extension { get; set; }
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
-        public Guid UserId { get; set; } // Foreign key to User
-        public Guid? GalleryId { get; set; } // Foreign key to Gallery
-
-        // Navigation property for ProfileImage (one-to-one)
+        public Guid UserId { get; set; }
+        public Guid? GalleryId { get; set; }
         public User? ProfileImageUser { get; set; }
-
-        // Navigation property for UploadedImages (one-to-many)
         public User? UploadedImagesUser { get; set; }
-
         public Gallery? Gallery { get; set; }
         public Field? Field { get; set; }
         public Listing? Listing { get; set; }
