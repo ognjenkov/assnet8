@@ -8,6 +8,6 @@ public static class Utils
 {
     public static string GenerateImageFrontendLink(Guid imageId)
     {
-        return "localhost////////" + imageId;
+        return "http://localhost:5181/images/" + imageId;
     }
 }

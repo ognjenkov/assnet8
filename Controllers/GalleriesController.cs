@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
 [Authorize]
+[Route("galleries")]
 public class GalleriesController : BaseController
 {
     [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.OrganizationOwner)]
@@ -50,13 +51,6 @@ public class GalleriesController : BaseController
     [VerifyRoles(Roles.Creator, Roles.TeamLeader, Roles.OrganizationOwner)]
     [HttpPost("team")]
     public IActionResult CreateTeamGallery()
-    {
-        return Ok("Create team gallery");
-    }
-
-    [VerifyRoles(Roles.Creator, Roles.TeamLeader, Roles.OrganizationOwner)]
-    [HttpPatch("team")]
-    public IActionResult UpdateTeamGallery()
     {
         return Ok("Create team gallery");
     }

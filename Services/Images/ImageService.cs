@@ -49,7 +49,6 @@ namespace assnet8.Services.Images
                 S3Id = S3Id,
                 Extension = Path.GetExtension(imageFile.FileName).ToLower(),
                 UserId = user.Id,
-                ProfileImageUser = user
             };
 
             using (var client = new HttpClient())

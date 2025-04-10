@@ -22,6 +22,20 @@ var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 // mislim da mu ovo omogucava dependency injection(i mislim da mozda omogucava i koriscenje tog middlewerea)
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials(); // 🔥 required for sending cookies/auth
+    });
+});
+
+
 builder.Services.AddAuthentication(configureOptions =>
 {
     configureOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -44,6 +58,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();// ovo mi omogucava pristup contextu u servisima (u kontrolerima automatcki postoje)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+
+
+
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<FluentValidationFilter>(); //filter je micro middleware
@@ -73,6 +90,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 // middleware posle ovoga
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+[Route("locations")]
 public class LocationsController : BaseController
 {
     private readonly AppDbContext _dbContext;

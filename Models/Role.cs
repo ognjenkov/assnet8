@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace assnet8.Models
@@ -9,6 +10,7 @@ namespace assnet8.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public required string Name { get; set; }
+        [JsonIgnore] //TODO dobra stvar istrazi zasto sam morao ovo da stavim, neki max depth prilikom serijalizacije, mozda treba da se doda na svaku listu koja se koristi za ef core
         public List<Membership> Memberships { get; set; } = [];
     }
     public static class Roles

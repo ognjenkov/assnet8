@@ -5,22 +5,26 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using assnet8.Dtos.Teams.Request;
 using assnet8.Dtos.Teams.Response;
+using assnet8.Services.Images;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+[Route("teams")]
 public class TeamsController : BaseController
 {
     private readonly AppDbContext _dbContext;
+    private readonly IImageService _imageService;
 
-    public TeamsController(AppDbContext dbContext)
+    public TeamsController(AppDbContext dbContext, IImageService imageService)
     {
         this._dbContext = dbContext;
+        this._imageService = imageService;
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateTeam([FromBody] CreateTeamRequestDto request)
+    public async Task<IActionResult> CreateTeam([FromForm] CreateTeamRequestDto request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
@@ -58,6 +62,26 @@ public class TeamsController : BaseController
 
         await _dbContext.SaveChangesAsync();
 
+        if (request.TeamImage != null)
+        {
+            try
+            {
+                var image = await _imageService.UploadImage(user, request.TeamImage);
+                await _dbContext.Images.AddAsync(image);
+
+                team.LogoImageId = image.Id;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (System.Exception)
+            {
+                System.Console.WriteLine("Failed to upload profile image");
+                // throw;
+            }
+
+        }
+
+
         return StatusCode(201, team.Id);
     }
 
@@ -91,7 +115,7 @@ public class TeamsController : BaseController
     [HttpPatch]
     public IActionResult UpdateTeam()
     {
-        return Ok("Create team");
+        return Ok("Update team");
     }
 
     [Authorize]

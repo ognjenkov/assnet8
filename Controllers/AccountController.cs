@@ -12,6 +12,7 @@ using assnet8.Services.Images;
 
 namespace assnet8.Controllers;
 [Authorize]
+[Route("account")]
 public class AccountController : BaseController
 {
     private readonly IAccountService _accountService;

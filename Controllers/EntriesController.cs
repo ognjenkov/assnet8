@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
 [Authorize]
+[Route("entries")]
 public class EntriesController : BaseController
 {
     private readonly AppDbContext _dbContext;

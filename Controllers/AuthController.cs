@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+[Route("auth")]
 public class AuthController : BaseController
 {
     private readonly AppDbContext _dbContext;
@@ -25,7 +26,7 @@ public class AuthController : BaseController
         this._imageService = imageService;
     }
 
-    [HttpPost("Login")]
+    [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
         var user = await _dbContext.Users
@@ -54,7 +55,7 @@ public class AuthController : BaseController
 
         user.RefreshTokenApp = refreshTokenApp;
         user.RefreshTokenCookie = refreshTokenCookie;
-        user.PersistLogin = request.RememberMe;
+        user.PersistLogin = request.Persist;
 
         await _dbContext.SaveChangesAsync();
 
@@ -90,7 +91,7 @@ public class AuthController : BaseController
     }
 
 
-    [HttpPost("Logout")]
+    [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
         if (!Request.Cookies.TryGetValue("jwt", out string? refreshTokenCookie))
@@ -116,7 +117,7 @@ public class AuthController : BaseController
 
     }
 
-    [HttpPost("Refresh")]
+    [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto request)
     {
         if (!Request.Cookies.TryGetValue("jwt", out string? refreshTokenCookie))
@@ -230,7 +231,7 @@ public class AuthController : BaseController
         return NotFound("Cookie not found");
     }
 
-    [HttpPost("Register")]
+    [HttpPost("register")]
     public async Task<IActionResult> Register([FromForm] RegisterRequestDto request)
     {
         try

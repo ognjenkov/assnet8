@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+[Route("listings")]
 public class ListingsController : BaseController
 {
     private readonly AppDbContext _dbContext;

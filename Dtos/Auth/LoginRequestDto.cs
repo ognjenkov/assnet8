@@ -10,7 +10,7 @@ namespace assnet8.Dtos.Auth
     {
         public required string UsernameOrEmail { get; set; }
         public required string Password { get; set; }
-        public bool RememberMe { get; set; } = false;
+        public bool Persist { get; set; } = false;
     }
     public class LoginRequestDtoValidator : AbstractValidator<LoginRequestDto>
     {
@@ -23,7 +23,7 @@ namespace assnet8.Dtos.Auth
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("Username or email is required")
                 .MustAsync(UsernameOrEmailExists).WithMessage("Invalid username or email");
-                
+
             RuleFor(x => x.Password)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("Password is required")

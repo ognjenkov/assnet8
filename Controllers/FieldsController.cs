@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+[Route("fields")]
 public class FieldsController : BaseController
 {
     private readonly AppDbContext _dbContext;

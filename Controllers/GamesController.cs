@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+[Route("games")]
 public class GamesController : BaseController
 {
     private readonly AppDbContext _dbContext;
@@ -29,6 +30,8 @@ public class GamesController : BaseController
                                         .ThenInclude(o => o!.LogoImage)
                                         .Include(g => g.Field)
                                         .ThenInclude(f => f!.ThumbnailImage)
+                                        .Include(g => g.Field)
+                                        .ThenInclude(f => f!.Location)
                                         .Include(g => g.Tags)
                                         .ToListAsync();
 
@@ -56,6 +59,11 @@ public class GamesController : BaseController
                 ThumbnailImage = g.Field.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(g.Field.ThumbnailImage.Id)
+                },
+                Location = g.Field.Location == null ? null : new LocationSimpleDto
+                {
+                    Id = g.Field.Location.Id,
+                    Region = g.Field.Location.Region
                 }
             }
         }));
@@ -71,6 +79,8 @@ public class GamesController : BaseController
                                 .ThenInclude(o => o!.LogoImage)
                                 .Include(g => g.Field)
                                 .ThenInclude(f => f!.ThumbnailImage)
+                                .Include(g => g.Field)
+                                .ThenInclude(f => f!.Location)
                                 .Include(g => g.Tags)
                                 .FirstOrDefaultAsync();
 
@@ -100,6 +110,11 @@ public class GamesController : BaseController
                 ThumbnailImage = game.Field.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(game.Field.ThumbnailImage.Id)
+                },
+                Location = game.Field.Location == null ? null : new LocationSimpleDto
+                {
+                    Id = game.Field.Location.Id,
+                    Region = game.Field.Location.Region
                 }
             }
         });

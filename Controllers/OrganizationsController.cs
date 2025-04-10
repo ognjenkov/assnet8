@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
 [Authorize]
+[Route("organizations")]
 public class OrganizationsController : BaseController
 {
     private readonly AppDbContext _dbContext;

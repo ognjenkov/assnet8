@@ -7,6 +7,7 @@ using assnet8.Services.Images;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+[Route("images")]
 public class ImagesController : BaseController
 {
     private readonly IImageService _imageService;

@@ -46,6 +46,7 @@ public class FieldSimpleDto
     public required string Name { get; set; }
     public required string GoogleMapsLink { get; set; }
     public ImageSimpleDto? ThumbnailImage { get; set; }
+    public LocationSimpleDto? Location { get; set; }
 }
 public class GameSimpleDto
 {

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+[Route("tags")]
 public class TagsController : BaseController
 {
     private readonly AppDbContext _dbContext;

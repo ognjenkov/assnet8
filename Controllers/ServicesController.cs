@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+[Route("services")]
 public class ServicesController : BaseController
 {
     private readonly AppDbContext _dbContext;

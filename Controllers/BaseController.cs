@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
 [ApiController]
-[Route("[controller]")]
+[Route("api")]
 public abstract class BaseController : Controller
 {
 }
