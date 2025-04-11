@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using assnet8.Data;
 
@@ -11,9 +12,11 @@ using assnet8.Data;
 namespace assnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250411200909_NewMunicipalities")]
+    partial class NewMunicipalities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,7 +170,7 @@ namespace assnet8.Migrations
                     b.Property<DateTime>("CreateDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("TeamId")
+                    b.Property<Guid>("TeamId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Title")
@@ -2194,110 +2197,6 @@ namespace assnet8.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tags");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111197"),
-                            Name = "CQB",
-                            Type = "Game"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111196"),
-                            Name = "Outdoors",
-                            Type = "Game"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111195"),
-                            Name = "Milsim",
-                            Type = "Game"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111194"),
-                            Name = "Replica",
-                            Type = "Listing"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111193"),
-                            Name = "Gear",
-                            Type = "Listing"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111192"),
-                            Name = "Uniform",
-                            Type = "Listing"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111191"),
-                            Name = "Attachment",
-                            Type = "Listing"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111180"),
-                            Name = "Assault Rifle",
-                            Type = "Listing"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111189"),
-                            Name = "Pistol",
-                            Type = "Listing"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111188"),
-                            Name = "AEG Service",
-                            Type = "Service"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111187"),
-                            Name = "GBB Service",
-                            Type = "Service"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111186"),
-                            Name = "HPA Service",
-                            Type = "Service"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111185"),
-                            Name = "Shop",
-                            Type = "Service"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111184"),
-                            Name = "Open games",
-                            Type = "Service"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111183"),
-                            Name = "Private games",
-                            Type = "Service"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111182"),
-                            Name = "Birthdays",
-                            Type = "Service"
-                        },
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111181"),
-                            Name = "Great Renting",
-                            Type = "Service"
-                        });
                 });
 
             modelBuilder.Entity("assnet8.Models.Team", b =>
@@ -2518,7 +2417,8 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Team", "Team")
                         .WithMany("Galleries")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("assnet8.Models.User", "User")
                         .WithMany("Galleries")

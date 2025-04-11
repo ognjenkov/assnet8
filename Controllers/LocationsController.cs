@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using assnet8.Dtos.Locations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
@@ -21,6 +22,16 @@ public class LocationsController : BaseController
                                             .Include(l => l.Municipalities)
                                             .ToListAsync();
 
-        return Ok(locations);
+        return Ok(locations.Select(l => new GetLocationsResponseDto
+        {
+            Id = l.Id,
+            Region = l.Region,
+            Registration = l.Registration,
+            Municipalities = l.Municipalities.Select(m => new MunicipalitySimpleDto
+            {
+                Id = m.Id,
+                Name = m.Name
+            }).ToList()
+        }));
     }
 }

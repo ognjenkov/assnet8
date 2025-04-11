@@ -11,7 +11,7 @@ namespace assnet8.Models
         public required string Title { get; set; }
         public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
         public Guid UserId { get; set; }
-        public Guid TeamId { get; set; }
+        public Guid? TeamId { get; set; }
         public User? User { get; set; }
         public Field? Field { get; set; }
         public Listing? Listing { get; set; }

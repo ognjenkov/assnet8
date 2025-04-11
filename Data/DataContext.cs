@@ -45,6 +45,8 @@ namespace assnet8.Data
             modelBuilder.ApplyConfiguration(new MunicipalityConfiguration());
             modelBuilder.ApplyConfiguration(new ListingConfiguration());
             modelBuilder.ApplyConfiguration(new RoleConfiguration());
+            modelBuilder.ApplyConfiguration(new LocationConfiguration());
+            modelBuilder.ApplyConfiguration(new TagConfiguration());
 
 
             // Configure the TagType enum to be stored as a string

@@ -26,6 +26,7 @@ namespace assnet8.Dtos.Teams.Request
                 .MustAsync(IsUniqueName).WithMessage("Name is already taken");
 
             RuleFor(x => x.TeamImage)
+                .Cascade(CascadeMode.Stop)
                 .Must(file => file == null || file.Length > 0).WithMessage("Image file cannot be empty")
                 .Must(file => file == null || file.Length <= 5 * 1024 * 1024).WithMessage("Image must be less than 5MB")
                 .Must(file => file == null || new[] { ".jpg", ".jpeg", ".png" }.Contains(Path.GetExtension(file.FileName).ToLower())).WithMessage("Only JPG and PNG images are allowed");

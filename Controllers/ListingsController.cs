@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using assnet8.Dtos.Listings.Request;
 using assnet8.Dtos.Listings.Response;
+using assnet8.Services.Images;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,10 +14,12 @@ namespace assnet8.Controllers;
 public class ListingsController : BaseController
 {
     private readonly AppDbContext _dbContext;
+    private readonly IImageService _imageService;
 
-    public ListingsController(AppDbContext dbContext)
+    public ListingsController(AppDbContext dbContext, IImageService imageService)
     {
         this._dbContext = dbContext;
+        this._imageService = imageService;
     }
 
     [HttpGet]
@@ -112,7 +115,7 @@ public class ListingsController : BaseController
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateListing([FromBody] CreateListingRequestDto request)
+    public async Task<IActionResult> CreateListing([FromForm] CreateListingRequestDto request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
@@ -142,6 +145,54 @@ public class ListingsController : BaseController
         };
         await _dbContext.Listings.AddAsync(listing);
         await _dbContext.SaveChangesAsync();
+
+        try
+        {
+            var image = await _imageService.UploadImage(user, request.ThumbnailImage);
+            await _dbContext.Images.AddAsync(image);
+
+            listing.ThumbnailImageId = image.Id;
+
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (System.Exception)
+        {
+            System.Console.WriteLine("Failed to upload profile image");
+            // throw;
+        }
+
+        if (request.Images != null && request.Images.Length > 0)
+        {
+            var gallery = new Gallery
+            {
+                Title = request.Title,
+                CreateDateTime = DateTime.Now,
+                UserId = user.Id,
+                Listing = listing,
+            };
+            await _dbContext.Galleries.AddAsync(gallery);
+            await _dbContext.SaveChangesAsync();
+
+            // cudan malo redosled, nisam 
+            // prosledio galleryId za slike jer galerija nije jos sacuvana,
+            // dodacu slike u galeriju pa cu se naterati da ce se automacki povezati
+            foreach (var image in request.Images)
+            {
+                try
+                {
+                    var img = await _imageService.UploadImage(user, image);
+                    await _dbContext.Images.AddAsync(img);
+                    gallery.Images.Add(img);
+                }
+                catch (System.Exception)
+                {
+                    System.Console.WriteLine("Failed to upload profile image");
+                    // throw;
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
 
         return StatusCode(201, listing.Id);
     }

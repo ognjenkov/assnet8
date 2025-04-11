@@ -74,3 +74,8 @@ public class GallerySimpleDto
     public UserSimpleDto? User { get; set; }
     public List<ImageSimpleDto> Images { get; set; } = [];
 }
+public class MunicipalitySimpleDto
+{
+    public required Guid Id { get; set; }
+    public required string Name { get; set; }
+}
