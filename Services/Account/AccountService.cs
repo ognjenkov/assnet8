@@ -44,6 +44,10 @@ namespace assnet8.Services.Account
                                         .ThenInclude(m => m.User!)
                                             .ThenInclude(u => u.ProfileImage)
                                     .Include(t => t.Location)
+                                    .Include(t => t.Galleries)
+                                        .ThenInclude(g => g.Images)
+                                    .Include(t => t.Galleries)
+                                        .ThenInclude(g => g.User)
                                     .SingleOrDefaultAsync();
         }
 

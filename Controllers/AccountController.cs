@@ -193,7 +193,22 @@ public class AccountController : BaseController
             {
                 Id = team.Location.Id,
                 Region = team.Location.Region
-            }
+            },
+            Galleries = team.Galleries?.Select(g => new GallerySimpleDto
+            {
+                CreateDateTime = g.CreateDateTime,
+                Title = g.Title,
+                User = new UserSimpleDto
+                {
+                    Id = g.UserId,
+                    Username = g.User!.Username,
+                },
+                Images = g.Images?.Select(i => new ImageSimpleDto
+                {
+                    Url = Utils.Utils.GenerateImageFrontendLink(i.Id)
+                }).ToList() ?? []
+
+            }).ToList() ?? []
 
         });
     }

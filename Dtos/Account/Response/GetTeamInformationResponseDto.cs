@@ -14,5 +14,6 @@ namespace assnet8.Dtos.Account.Response
         public ImageSimpleDto? LogoImage { get; set; }
         public required List<MembershipSimpleDto> Memberships { get; set; }
         public LocationSimpleDto? Location { get; set; }
+        public List<GallerySimpleDto>? Galleries { get; set; }
     }
 }
