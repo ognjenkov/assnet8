@@ -10,6 +10,8 @@ namespace assnet8.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public required string Name { get; set; }
         public required string GoogleMapsLink { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
         public Guid? LocationId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)
         public Guid? GalleryId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)
         public Guid OrganizationId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)

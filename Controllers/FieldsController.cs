@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using assnet8.Dtos.Fields.Request;
 using assnet8.Dtos.Fields.Response;
 using assnet8.Services.Account;
+using assnet8.Services.Images;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,11 +16,13 @@ public class FieldsController : BaseController
 {
     private readonly AppDbContext _dbContext;
     private readonly IAccountService _accountService;
+    private readonly IImageService _imageService;
 
-    public FieldsController(AppDbContext dbContext, IAccountService accountService)
+    public FieldsController(AppDbContext dbContext, IAccountService accountService, IImageService imageService)
     {
         this._dbContext = dbContext;
         this._accountService = accountService;
+        this._imageService = imageService;
     }
     [HttpGet]
     public async Task<IActionResult> GetFields()
@@ -36,6 +39,8 @@ public class FieldsController : BaseController
             Id = f.Id,
             Name = f.Name,
             GoogleMapsLink = f.GoogleMapsLink,
+            Latitude = f.Latitude,
+            Longitude = f.Longitude,
             ThumbnailImage = f.ThumbnailImage == null ? null : new ImageSimpleDto
             {
                 Url = Utils.Utils.GenerateImageFrontendLink(f.ThumbnailImage.Id)
@@ -89,6 +94,8 @@ public class FieldsController : BaseController
             Id = field.Id,
             Name = field.Name,
             GoogleMapsLink = field.GoogleMapsLink,
+            Latitude = field.Latitude,
+            Longitude = field.Longitude,
             ThumbnailImage = field.ThumbnailImage == null ? null : new ImageSimpleDto
             {
                 Url = Utils.Utils.GenerateImageFrontendLink(field.ThumbnailImage.Id)
@@ -137,7 +144,7 @@ public class FieldsController : BaseController
     [Authorize]
     [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.OrganizationOwner)]
     [HttpPost]
-    public async Task<IActionResult> CreateField([FromBody] CreateFieldRequestDto request)
+    public async Task<IActionResult> CreateField([FromForm] CreateFieldRequestDto request)
     {//TODO ova metoda nije gotova jer jos nema slika :)
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
@@ -162,6 +169,56 @@ public class FieldsController : BaseController
 
         await _dbContext.Fields.AddAsync(field);
         await _dbContext.SaveChangesAsync();
+
+
+
+        try
+        {
+            var image = await _imageService.UploadImage(user, request.FieldImage);
+            await _dbContext.Images.AddAsync(image);
+
+            field.ThumbnailImageId = image.Id;
+
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (System.Exception)
+        {
+            System.Console.WriteLine("Failed to upload field image");
+            // throw;
+        }
+
+        if (request.Images != null && request.Images.Length > 0)
+        {
+            var gallery = new Gallery
+            {
+                Title = request.Name,
+                CreateDateTime = DateTime.Now,
+                UserId = user.Id,
+                Field = field,
+            };
+            await _dbContext.Galleries.AddAsync(gallery);
+            await _dbContext.SaveChangesAsync();
+
+            // cudan malo redosled, nisam 
+            // prosledio galleryId za slike jer galerija nije jos sacuvana,
+            // dodacu slike u galeriju pa cu se naterati da ce se automacki povezati
+            foreach (var image in request.Images)
+            {
+                try
+                {
+                    var img = await _imageService.UploadImage(user, image);
+                    await _dbContext.Images.AddAsync(img);
+                    gallery.Images.Add(img);
+                }
+                catch (System.Exception)
+                {
+                    System.Console.WriteLine("Failed to upload gallery image");
+                    // throw;
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
 
         return StatusCode(201, field.Id);
     }

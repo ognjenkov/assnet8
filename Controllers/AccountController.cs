@@ -139,7 +139,16 @@ public class AccountController : BaseController
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(s.ThumbnailImage.Id)
                 }
-            }).ToList() ?? []
+            }).ToList() ?? [],
+            Creator = new UserSimpleDto
+            {
+                Id = organization.UserId,
+                Username = organization.User!.Username,
+                ProfileImage = organization.User.ProfileImage == null ? null : new ImageSimpleDto
+                {
+                    Url = Utils.Utils.GenerateImageFrontendLink(organization.User.ProfileImage.Id)
+                }
+            }
         });
 
     }

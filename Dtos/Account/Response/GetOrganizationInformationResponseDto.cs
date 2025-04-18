@@ -15,5 +15,6 @@ namespace assnet8.Dtos.Account.Response
         public List<FieldSimpleDto> Fields { get; set; } = [];
         public List<GameSimpleDto> Games { get; set; } = [];
         public List<ServiceSimpleDto> Services { get; set; } = [];
+        public UserSimpleDto? Creator { get; set; }
     }
 }

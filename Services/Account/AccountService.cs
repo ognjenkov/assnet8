@@ -30,6 +30,8 @@ namespace assnet8.Services.Account
                                     .Include(o => o.Games)
                                     .Include(o => o.Services)
                                     .ThenInclude(s => s.ThumbnailImage)
+                                    .Include(o => o.User)
+                                        .ThenInclude(u => u!.ProfileImage)
                                     .SingleOrDefaultAsync();
         }
 

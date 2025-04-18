@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using assnet8.Dtos.Organizations.Request;
 using assnet8.Dtos.Organizations.Response;
+using assnet8.Services.Images;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,45 +16,12 @@ namespace assnet8.Controllers;
 public class OrganizationsController : BaseController
 {
     private readonly AppDbContext _dbContext;
+    private readonly IImageService _imageService;
 
-    public OrganizationsController(AppDbContext dbContext)
+    public OrganizationsController(AppDbContext dbContext, IImageService imageService)
     {
         this._dbContext = dbContext;
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizationRequestDto request)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null) return Unauthorized();
-
-        if (userId != Guid.Parse(userId).ToString()) return Unauthorized();
-
-        var user = await _dbContext.Users
-                            .FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
-
-        if (user == null) return NotFound("User not found");
-
-        var userRoles = user.Membership?.Roles.ToList();
-
-        var allowedRoles = new List<string> { Roles.Creator, Roles.Organizer, Roles.ServiceProvider };
-        if (userRoles != null && userRoles.Any(role => allowedRoles.Contains(role.Name)))
-        {
-            return StatusCode(403);
-        }
-        if (user.Organization != null) return BadRequest("User already has an organization");
-
-        var organization = new Organization
-        {
-            Name = request.Name,
-            UserId = user.Id,
-            TeamId = user.Membership?.TeamId
-        };
-        // ako je u timu proveri da li ima permissione
-        await _dbContext.Organizations.AddAsync(organization);
-        await _dbContext.SaveChangesAsync();
-
-        return StatusCode(201, organization.Id);
+        this._imageService = imageService;
     }
 
     [VerifyRoles(Roles.Creator, Roles.OrganizationOwner, Roles.Organizer, Roles.ServiceProvider)]
@@ -142,6 +110,79 @@ public class OrganizationsController : BaseController
                 }
             }
         });
+    }
+
+    [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.ServiceProvider)]
+    [HttpPost("team")]
+    public async Task<IActionResult> CreateTeamOrganization()
+    {
+        // NOTE u ovoj ruti cu malo drugacije da postupim, verovacu jwt-ju i samo cu da ga napraivm
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userId, out var parsedUserId))
+        {
+            return Unauthorized();
+        }
+        var team = await _dbContext.Teams
+            .FirstOrDefaultAsync(t => t.Memberships.Any(m => m.UserId == parsedUserId));
+        if (team == null) return NotFound("Team not found");
+
+        var organization = new Organization
+        {
+            Name = team.Name,
+            UserId = team.CreatorId,
+            TeamId = team.Id,
+            LogoImageId = team.LogoImageId
+        };
+        await _dbContext.Organizations.AddAsync(organization);
+        await _dbContext.SaveChangesAsync();
+
+        return StatusCode(201, organization.Id);
+    }
+
+    [HttpPost("individual")]
+    public async Task<IActionResult> CreateIndividualOrganization([FromForm] CreateOrganizationRequestDto request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+
+        if (userId != Guid.Parse(userId).ToString()) return Unauthorized();
+
+        var user = await _dbContext.Users
+                            .Where(u => u.Id == Guid.Parse(userId))
+                            .Include(u => u.Membership)
+                            .FirstOrDefaultAsync();
+
+        if (user == null) return NotFound("User not found");
+        if (user.Organization != null) return BadRequest("User already has an organization");
+        if (user.Membership?.TeamId != null) return BadRequest("User already has a team " + user.Membership.TeamId);
+
+        var organization = new Organization
+        {
+            Name = request.Name,
+            UserId = user.Id,
+        };
+        await _dbContext.Organizations.AddAsync(organization);
+        await _dbContext.SaveChangesAsync();
+
+        if (request.OrganizationImage != null)
+        {
+            try
+            {
+                var image = await _imageService.UploadImage(user, request.OrganizationImage);
+                await _dbContext.Images.AddAsync(image);
+
+                organization.LogoImageId = image.Id;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (System.Exception)
+            {
+                System.Console.WriteLine("Failed to upload organization image");
+                // throw;
+            }
+        }
+
+        return StatusCode(201, organization.Id);
     }
 
 }

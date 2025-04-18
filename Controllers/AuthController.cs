@@ -86,7 +86,7 @@ public class AuthController : BaseController
             },
             Roles = roles,
             TeamId = user.Membership?.TeamId ?? null,
-            OrganizationId = user.Organization?.Id ?? null
+            OrganizationId = user.Organization?.Id != null ? (user.Membership?.TeamId != null ? null : user.Organization?.Id) : null // svaka organizacija ima kreatora, to nas ne zanima ako korisnik ima tim, zato saljem null
         };
         return Ok(response);
     }
