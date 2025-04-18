@@ -32,6 +32,7 @@ public class AuthController : BaseController
         var user = await _dbContext.Users
             .Where(u => u.Username == request.UsernameOrEmail || u.Email == request.UsernameOrEmail)
             .Include(u => u.Membership)
+                .ThenInclude(m => m!.Roles)
             .Include(u => u.Organization)
             .Include(u => u.ProfileImage)
             .FirstOrDefaultAsync();// ovde si stao, razocaran jer ti rolovi nisu niz
@@ -127,6 +128,7 @@ public class AuthController : BaseController
         var user = await _dbContext.Users
             .Where(u => u.RefreshTokenCookie == refreshTokenCookie)
             .Include(u => u.Membership)
+                .ThenInclude(m => m!.Roles)
             .Include(u => u.Organization)
             .Include(u => u.ProfileImage)
             .FirstOrDefaultAsync();

@@ -50,7 +50,8 @@ public class TeamsController : BaseController
             Name = request.Name,
             CreatorId = user.Id,
         };
-        _dbContext.Teams.Add(team);
+        await _dbContext.Teams.AddAsync(team);
+        await _dbContext.SaveChangesAsync();
 
         var membership = new Membership
         {
@@ -58,8 +59,7 @@ public class TeamsController : BaseController
             UserId = user.Id,
             Roles = roles,
         };
-        _dbContext.Memberships.Add(membership);//TODO mozda AddAsync
-
+        await _dbContext.Memberships.AddAsync(membership);//TODO mozda AddAsync
         await _dbContext.SaveChangesAsync();
 
         if (request.TeamImage != null)
