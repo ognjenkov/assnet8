@@ -159,12 +159,16 @@ public class FieldsController : BaseController
         //ovo se jedino desava ako tim nema organizaciju, zbog autorizacije
         if (organizationId == null) return Unauthorized("Your team does not have an organization");
 
+        var (latitute, longitude) = await Utils.GoogleMapsHelper.GetCoordinatesFromGoogleMapsUrl(request.GoogleMapsLink);
+
         var field = new Field
         {
             Name = request.Name,
             GoogleMapsLink = request.GoogleMapsLink,
             LocationId = request.LocationId,
-            OrganizationId = (Guid)organizationId
+            OrganizationId = (Guid)organizationId,
+            Latitude = latitute ?? 0,
+            Longitude = longitude ?? 0,
         };
 
         await _dbContext.Fields.AddAsync(field);
