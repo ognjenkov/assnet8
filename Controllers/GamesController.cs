@@ -149,7 +149,7 @@ public class GamesController : BaseController
         {
             Title = request.Title,
             StartDateTime = request.StartDateTime,
-            LengthTime = request.LengthTime,
+            Description = request.Description,
             FieldId = request.FieldId,
             OrganizationId = (Guid)organizationId,
             Tags = tags

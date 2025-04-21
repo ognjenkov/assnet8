@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.Marshalling;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using assnet8.Dtos.Fields.Request;
@@ -9,6 +10,7 @@ using assnet8.Services.Account;
 using assnet8.Services.Images;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace assnet8.Controllers;
 [Route("fields")]
@@ -30,7 +32,6 @@ public class FieldsController : BaseController
         var fields = await _dbContext.Fields
                                         .Include(f => f.ThumbnailImage)
                                         .Include(f => f.Location)
-                                        .ThenInclude(l => l!.Municipalities)
                                         .Include(f => f.Organization)
                                         .ThenInclude(o => o!.LogoImage)
                                         .ToListAsync();
@@ -65,9 +66,36 @@ public class FieldsController : BaseController
     [Authorize]
     [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.TeamLeader, Roles.Member, Roles.OrganizationOwner, Roles.ServiceProvider)]
     [HttpGet("owned")]
-    public IActionResult GetOwnedFields()
+    public async Task<IActionResult> GetOwnedFields()
     {
-        return Ok("Get owned fields");
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var guidUserId = Guid.Parse(userId!);
+
+        var user = await _accountService.GetAccountFromUserId(guidUserId);
+
+        var organizationId = user!.Organization?.Id ?? user!.Membership?.Team?.Organization?.Id;
+
+        var fields = await _dbContext.Fields
+                                        .Where(f => f.OrganizationId == organizationId)
+                                        .Include(f => f.ThumbnailImage)
+                                        .Include(f => f.Location)
+                                        .ToListAsync();
+
+        return Ok(fields.Select(f => new GetOwnedFieldsResponseDto
+        {
+            Id = f.Id,
+            Name = f.Name,
+            GoogleMapsLink = f.GoogleMapsLink,
+            ThumbnailImage = f.ThumbnailImage == null ? null : new ImageSimpleDto
+            {
+                Url = Utils.Utils.GenerateImageFrontendLink(f.ThumbnailImage.Id)
+            },
+            Location = f.Location == null ? null : new LocationSimpleDto
+            {
+                Id = f.Location.Id,
+                Region = f.Location.Region,
+            }
+        }));
     }
 
     [HttpGet("{FieldId}")]

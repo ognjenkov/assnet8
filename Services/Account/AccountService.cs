@@ -64,6 +64,8 @@ namespace assnet8.Services.Account
                                 .Include(u => u.Membership)
                                     .ThenInclude(m => m!.Team)
                                         .ThenInclude(t => t!.LogoImage)
+                                .Include(u => u.Membership)
+                                    .ThenInclude(m => m!.Team)
                                         .ThenInclude(t => t!.Organization)
                                 .Include(u => u.Membership)
                                     .ThenInclude(m => m!.Roles)

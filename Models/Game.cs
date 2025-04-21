@@ -10,7 +10,7 @@ public class Game
     public required string Title { get; set; }
     public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
     public DateTime StartDateTime { get; set; }
-    public string? LengthTime { get; set; }
+    public string? Description { get; set; }
     public Guid OrganizationId { get; set; } // zavisi od organizacije
     public Guid FieldId { get; set; }
     public List<Entry> Entries { get; set; } = [];

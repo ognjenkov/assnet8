@@ -10,7 +10,7 @@ namespace assnet8.Dtos.Games.Request
     {
         public required string Title { get; set; }
         public required DateTime StartDateTime { get; set; }
-        public string? LengthTime { get; set; }
+        public string? Description { get; set; }
         public required Guid FieldId { get; set; }
         public Guid[] TagIds { get; set; } = [];
     }
@@ -54,7 +54,7 @@ namespace assnet8.Dtos.Games.Request
             if (tagIds.Length == 0) return true;
 
             var tags = await _dbContext.Tags
-                .Where(t => tagIds.Contains(t.Id) && t.Type == TagType.Listing)
+                .Where(t => tagIds.Contains(t.Id) && t.Type == TagType.Game)
                 .ToListAsync(cancellationToken: token);
 
             if (tags.Count != tagIds.Length)
