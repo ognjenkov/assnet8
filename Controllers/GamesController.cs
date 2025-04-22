@@ -92,6 +92,7 @@ public class GamesController : BaseController
             Title = game.Title,
             CreateDateTime = game.CreateDateTime,
             StartDateTime = game.StartDateTime,
+            Description = game.Description,
             Organization = game.Organization == null ? null : new OrganizationSimpleDto
             {
                 Id = game.Organization.Id,
