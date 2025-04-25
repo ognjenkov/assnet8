@@ -8,6 +8,7 @@ using assnet8.Dtos.Fields.Request;
 using assnet8.Dtos.Fields.Response;
 using assnet8.Services.Account;
 using assnet8.Services.Images;
+using assnet8.Services.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration.UserSecrets;
@@ -19,12 +20,14 @@ public class FieldsController : BaseController
     private readonly AppDbContext _dbContext;
     private readonly IAccountService _accountService;
     private readonly IImageService _imageService;
+    private readonly IGoogleMapsService _googleMapsService;
 
-    public FieldsController(AppDbContext dbContext, IAccountService accountService, IImageService imageService)
+    public FieldsController(AppDbContext dbContext, IAccountService accountService, IImageService imageService, IGoogleMapsService googleMapsService)
     {
         this._dbContext = dbContext;
         this._accountService = accountService;
         this._imageService = imageService;
+        this._googleMapsService = googleMapsService;
     }
     [HttpGet]
     public async Task<IActionResult> GetFields()
@@ -187,7 +190,7 @@ public class FieldsController : BaseController
         //ovo se jedino desava ako tim nema organizaciju, zbog autorizacije
         if (organizationId == null) return Unauthorized("Your team does not have an organization");
 
-        var (latitute, longitude) = await Utils.GoogleMapsHelper.GetCoordinatesFromGoogleMapsUrl(request.GoogleMapsLink);
+        var (latitute, longitude) = await _googleMapsService.GetCoordinatesFromUrlAsync(request.GoogleMapsLink);
 
         var field = new Field
         {

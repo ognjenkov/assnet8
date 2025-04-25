@@ -17,6 +17,7 @@ using assnet8.Services.Auth;
 using assnet8.Services.Account;
 using assnet8.Services.Entries;
 using assnet8.Services.Images;
+using assnet8.Services.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -77,6 +78,19 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IImageService, ImageService>();
+
+builder.Services.AddHttpClient<IGoogleMapsService, GoogleMapsService>(client =>
+{
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+builder.Services.AddHttpClient("NextJsRevalidation", client =>
+{
+    client.BaseAddress = new Uri(config["Frontend:Url"]!);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddSingleton<INextJsRevalidationService, NextJsRevalidationService>();
+
 //AddScoped -> create new instance for every request
 //AddTransient -> new instance for every controller and every service for every request
 //AddSingleton -> only one instance for every request
