@@ -2,21 +2,20 @@
 
 #nullable disable
 
-namespace assnet8.Migrations
+namespace assnet8.Migrations;
+
+/// <inheritdoc />
+public partial class NewTags1 : Migration
 {
     /// <inheritdoc />
-    public partial class NewTags1 : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
 
-        }
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
 
-        }
     }
 }

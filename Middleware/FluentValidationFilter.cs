@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using FluentValidation.Results;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
-namespace assnet8.Middleware
-{
-    public class FluentValidationFilter : IAsyncActionFilter
+namespace assnet8.Middleware;
+
+public class FluentValidationFilter : IAsyncActionFilter
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ProblemDetailsFactory _problemDetailsFactory;
@@ -57,5 +59,4 @@ namespace assnet8.Middleware
     }
 
     public void OnActionExecuted(ActionExecutedContext context) { }
-}
 }

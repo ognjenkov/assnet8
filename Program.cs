@@ -1,23 +1,29 @@
-global using Microsoft.EntityFrameworkCore;
-global using assnet8.Models;
 global using assnet8.Data;
-global using assnet8.Identity;
 global using assnet8.Dtos.Simple;
+global using assnet8.Identity;
+global using assnet8.Models;
 global using assnet8.Utils;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+
+global using Microsoft.EntityFrameworkCore;
+
 using System.Text;
-using Microsoft.Extensions.Options;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using assnet8.Swagger;
 using System.Text.Json;
-using FluentValidation;
+
 using assnet8.Middleware;
-using assnet8.Services.Auth;
 using assnet8.Services.Account;
+using assnet8.Services.Auth;
 using assnet8.Services.Entries;
 using assnet8.Services.Images;
 using assnet8.Services.Utils;
+using assnet8.Swagger;
+
+using FluentValidation;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -114,4 +120,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-

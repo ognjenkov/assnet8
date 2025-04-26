@@ -2,27 +2,26 @@
 
 #nullable disable
 
-namespace assnet8.Migrations
+namespace assnet8.Migrations;
+
+/// <inheritdoc />
+public partial class GameDescription : Migration
 {
     /// <inheritdoc />
-    public partial class GameDescription : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.RenameColumn(
-                name: "LengthTime",
-                table: "Games",
-                newName: "Description");
-        }
+        migrationBuilder.RenameColumn(
+            name: "LengthTime",
+            table: "Games",
+            newName: "Description");
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.RenameColumn(
-                name: "Description",
-                table: "Games",
-                newName: "LengthTime");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.RenameColumn(
+            name: "Description",
+            table: "Games",
+            newName: "LengthTime");
     }
 }

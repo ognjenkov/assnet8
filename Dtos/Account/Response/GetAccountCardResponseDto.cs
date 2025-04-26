@@ -13,6 +13,3 @@ public class GetAccountCardResponseDto
     public OrganizationSimpleDto? Organization { get; set; }
     public MembershipSimpleDto? Membership { get; set; }
 }
-
-
-

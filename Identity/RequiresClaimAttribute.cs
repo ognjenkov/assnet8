@@ -2,29 +2,29 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace assnet8.Identity
+namespace assnet8.Identity;
+
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+public class RequiresClaimAttribute : Attribute, IAuthorizationFilter
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-    public class RequiresClaimAttribute : Attribute, IAuthorizationFilter
+    private readonly string _claimName;
+    private readonly string _claimValue;
+
+    public RequiresClaimAttribute(string claimName, string claimValue)
     {
-        private readonly string _claimName;
-        private readonly string _claimValue;
+        _claimName = claimName;
+        _claimValue = claimValue;
+    }
 
-        public RequiresClaimAttribute(string claimName, string claimValue)
+    public void OnAuthorization(AuthorizationFilterContext context)
+    {
+        if (!context.HttpContext.User.HasClaim(_claimName, _claimValue))
         {
-            _claimName = claimName;
-            _claimValue = claimValue;
-        }
-
-        public void OnAuthorization(AuthorizationFilterContext context)
-        {
-            if(!context.HttpContext.User.HasClaim(_claimName, _claimValue))
-            {
-                context.Result = new ForbidResult();
-            }
+            context.Result = new ForbidResult();
         }
     }
 }

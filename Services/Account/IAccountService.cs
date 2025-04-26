@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
 
-namespace assnet8.Services.Account
+namespace assnet8.Services.Account;
+
+public interface IAccountService
 {
-    public interface IAccountService
-    {
-        public Task<User?> GetAccountFromUserId(Guid userId);
-        public Task<Organization?> GetOrganizationFromUserIdOrTeamId(Guid guid);
-        public Task<Team?> GetTeamFromUserId(Guid userId);
-        public Task DeleteUserFromuserId(Guid userId);
-        public Task<User> UpdateUser(User newUserData);
-    }
+    public Task<User?> GetAccountFromUserId(Guid userId);
+    public Task<Organization?> GetOrganizationFromUserIdOrTeamId(Guid guid);
+    public Task<Team?> GetTeamFromUserId(Guid userId);
+    public Task DeleteUserFromuserId(Guid userId);
+    public Task<User> UpdateUser(User newUserData);
 }

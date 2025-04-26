@@ -2,20 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using FluentValidation;
 
-namespace assnet8.Dtos.Games.Request
+namespace assnet8.Dtos.Games.Request;
+
+public class GetGameRequestDto
 {
-    public class GetGameRequestDto
+    public Guid GameId { get; set; }
+}
+public class GetGameRequestDtoValidator : AbstractValidator<GetGameRequestDto>
+{
+    public GetGameRequestDtoValidator()
     {
-        public Guid GameId { get; set; }
-    }
-    public class GetGameRequestDtoValidator : AbstractValidator<GetGameRequestDto>
-    {
-        public GetGameRequestDtoValidator()
-        {
-            RuleFor(x => x.GameId)
-                .NotEmpty().WithMessage("GameId is required");
-        }
+        RuleFor(x => x.GameId)
+            .NotEmpty().WithMessage("GameId is required");
     }
 }

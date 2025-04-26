@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
+using assnet8.Dtos.Account.Request;
+using assnet8.Dtos.Account.Response;
 using assnet8.Services.Account;
+using assnet8.Services.Images;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using assnet8.Dtos.Account.Response;
-using assnet8.Dtos.Account.Request;
-using assnet8.Services.Images;
 
 namespace assnet8.Controllers;
 [Authorize]

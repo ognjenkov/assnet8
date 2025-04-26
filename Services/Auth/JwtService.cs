@@ -6,16 +6,17 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
 namespace assnet8.Services.Auth;
 public class JwtService : IJwtService
 {
-    private string? _accessTokenSecret;
-    private string? _refreshTokenSecret;
-    private string? _issuer;
-    private string? _audience;
+    private readonly string? _accessTokenSecret;
+    private readonly string? _refreshTokenSecret;
+    private readonly string? _issuer;
+    private readonly string? _audience;
 
     public JwtService(IConfiguration configuration)
     {

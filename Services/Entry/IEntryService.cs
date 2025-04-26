@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace assnet8.Services.Entries
+namespace assnet8.Services.Entries;
+
+public interface IEntriesService
 {
-    public interface IEntriesService
-    {
-        public Task<List<Entry>> GetEntriesFromGameId(Guid gameId);
-    }
+    public Task<List<Entry>> GetEntriesFromGameId(Guid gameId);
 }

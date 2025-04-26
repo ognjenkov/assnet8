@@ -1,37 +1,37 @@
 ﻿using System;
+
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace assnet8.Migrations
+namespace assnet8.Migrations;
+
+/// <inheritdoc />
+public partial class GalleryTeamRelationship : Migration
 {
     /// <inheritdoc />
-    public partial class GalleryTeamRelationship : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AlterColumn<Guid>(
-                name: "TeamId",
-                table: "Galleries",
-                type: "uniqueidentifier",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier");
-        }
+        migrationBuilder.AlterColumn<Guid>(
+            name: "TeamId",
+            table: "Galleries",
+            type: "uniqueidentifier",
+            nullable: true,
+            oldClrType: typeof(Guid),
+            oldType: "uniqueidentifier");
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AlterColumn<Guid>(
-                name: "TeamId",
-                table: "Galleries",
-                type: "uniqueidentifier",
-                nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier",
-                oldNullable: true);
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.AlterColumn<Guid>(
+            name: "TeamId",
+            table: "Galleries",
+            type: "uniqueidentifier",
+            nullable: false,
+            defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
+            oldClrType: typeof(Guid),
+            oldType: "uniqueidentifier",
+            oldNullable: true);
     }
 }
