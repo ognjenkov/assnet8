@@ -14,6 +14,7 @@ using assnet8.Services.Account;
 using assnet8.Services.Auth;
 using assnet8.Services.Entries;
 using assnet8.Services.Images;
+using assnet8.Services.SignalR;
 using assnet8.Services.Utils;
 using assnet8.Swagger;
 
@@ -60,6 +61,25 @@ builder.Services.AddAuthentication(configureOptions =>
         ValidAudience = config["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:ACCESS_TOKEN_SECRET"]!))
     };
+
+
+    // Important: allow SignalR JWTs in query string
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+
+            // If the request is for our hub...
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/entries"))
+            {
+                // Read the token from the query string
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();// ovo mi omogucava pristup contextu u servisima (u kontrolerima automatcki postoje)
@@ -96,7 +116,11 @@ builder.Services.AddHttpClient("NextJsRevalidation", client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 builder.Services.AddSingleton<INextJsRevalidationService, NextJsRevalidationService>();
-
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 //AddScoped -> create new instance for every request
 //AddTransient -> new instance for every controller and every service for every request
 //AddSingleton -> only one instance for every request
@@ -115,6 +139,7 @@ app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<EntriesHub>("/hubs/entries");
 
 // poslednji middleware
 app.MapControllers();

@@ -7,6 +7,7 @@ namespace assnet8.Dtos.Entries.Response;
 
 public class GetGameEntriesResponseDto
 {
+    public Guid Id { get; set; }
     public DateTime CreateDateTime { get; set; }
     public int OpNumber { get; set; }
     public int RentNumber { get; set; }

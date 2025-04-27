@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using assnet8.Dtos.Entries.Request;
 using assnet8.Dtos.Entries.Response;
 using assnet8.Services.Entries;
+using assnet8.Services.SignalR;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace assnet8.Controllers;
 [Authorize]
@@ -17,10 +19,12 @@ namespace assnet8.Controllers;
 public class EntriesController : BaseController
 {
     private readonly AppDbContext _dbContext;
+    private readonly IHubContext<EntriesHub> _entriesHub;
 
-    public EntriesController(AppDbContext dbContext)
+    public EntriesController(AppDbContext dbContext, IHubContext<EntriesHub> entriesHub)
     {
         this._dbContext = dbContext;
+        this._entriesHub = entriesHub;
     }
     [HttpGet("game/{GameId}")]
     public IActionResult GetGameEntries([FromRoute] GetGameEntriesRequestDto request)
@@ -32,6 +36,7 @@ public class EntriesController : BaseController
         //TODO da li mi ovde fali neka provera, mislim da nema potrebe
         return Ok(entries.Select(e => new GetGameEntriesResponseDto
         {
+            Id = e.Id,
             CreateDateTime = e.CreateDateTime,
             OpNumber = e.OpNumber,
             RentNumber = e.RentNumber,
@@ -53,17 +58,11 @@ public class EntriesController : BaseController
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
-        if (userId != Guid.Parse(userId).ToString()) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
         var game = await _dbContext.Games.FirstOrDefaultAsync(g => g.Id == request.GameId);
 
         if (game == null) return NotFound("Game not found");
-
-        var entryExists = await _dbContext.Entries
-                                            .Where(e => e.GameId == request.GameId)
-                                            .Where(e => e.UserId == Guid.Parse(userId))
-                                            .FirstOrDefaultAsync();
-        if (entryExists != null) return BadRequest("Entry already exists");
 
         var entry = new Entry
         {
@@ -76,25 +75,29 @@ public class EntriesController : BaseController
         await _dbContext.Entries.AddAsync(entry);
         await _dbContext.SaveChangesAsync();
 
+        await _entriesHub.Clients.Groups(game.Id.ToString()).SendAsync("Refetch");
+
         return Created();
     }
 
-    [HttpDelete]
-    public async Task<IActionResult> DeleteEntry([FromBody] DeleteEntryRequestDto request)
+    [HttpDelete("{EntryId}")]
+    public async Task<IActionResult> DeleteEntry([FromRoute] DeleteEntryRequestDto request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
-        if (userId != Guid.Parse(userId).ToString()) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
         var entry = await _dbContext.Entries
                                 .Where(e => e.Id == request.EntryId)
-                                .Where(e => e.UserId == Guid.Parse(userId))
+                                .Where(e => e.UserId == userGuid)
                                 .FirstOrDefaultAsync();
 
         if (entry == null) return NotFound("Entry not found");
 
         _dbContext.Entries.Remove(entry);
         await _dbContext.SaveChangesAsync();
+
+        await _entriesHub.Clients.Groups(entry.GameId.ToString()).SendAsync("Refetch");
 
         return Ok();
     }
