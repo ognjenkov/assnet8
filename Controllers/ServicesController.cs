@@ -160,9 +160,47 @@ public class ServicesController : BaseController
     [Authorize]
     [VerifyRoles(Roles.ServiceProvider, Roles.OrganizationOwner, Roles.Creator)]
     [HttpDelete]
-    public IActionResult DeleteService()
+    public async Task<IActionResult> DeleteServiceAsync([FromRoute] DeleteServiceRequestDto request)
     {
-        return Ok("Create service");
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var user = await _accountService.GetAccountFromUserId(userGuid);
+
+        if (user == null) return NotFound("User not found");
+
+        var organizationId = user.Organization?.Id ?? user.Membership?.Team?.Organization?.Id;
+
+        var service = await _dbContext.Services
+                            .Where(f => f.Id == request.ServiceId && f.OrganizationId == organizationId)
+                            .Include(f => f.Gallery)
+                                .ThenInclude(g => g!.Images)
+                            .Include(f => f.ThumbnailImage)
+                            .FirstOrDefaultAsync();
+
+        if (service == null) return NotFound("Service not found");
+
+        if (service.ThumbnailImage != null)
+        {
+            await _imageService.DeleteImage(service.ThumbnailImage);
+        }
+
+        if (service.Gallery != null)
+        {
+            var images = service.Gallery.Images.ToList();
+            foreach (var image in images)
+            {
+                await _imageService.DeleteImage(image);
+            }
+
+            _dbContext.Galleries.Remove(service.Gallery);
+        }
+
+        _dbContext.Services.Remove(service);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok("Delete service");
     }
 
     [Authorize]
