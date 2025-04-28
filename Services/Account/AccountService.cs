@@ -8,7 +8,7 @@ namespace assnet8.Services.Account;
 public class AccountService : IAccountService
 {
     private readonly AppDbContext _dbContext;
-    public AccountService(AppDbContext dbContext)
+    public AccountService(AppDbContext dbContext) // TODO ceo kod ovde mora da se sredi ovo je boze pomozi
     {
         this._dbContext = dbContext;
     }

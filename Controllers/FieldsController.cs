@@ -181,9 +181,9 @@ public class FieldsController : BaseController
     {//TODO ova metoda nije gotova jer jos nema slika :)
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
-        if (userId != Guid.Parse(userId).ToString()) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
-        var user = await _accountService.GetAccountFromUserId(Guid.Parse(userId));
+        var user = await _accountService.GetAccountFromUserId(userGuid);
 
         if (user == null) return NotFound("User not found");
 
@@ -262,9 +262,47 @@ public class FieldsController : BaseController
 
     [Authorize]
     [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.OrganizationOwner)]
-    [HttpDelete]
-    public IActionResult DeleteField()
+    [HttpDelete("{FieldId}")]
+    public async Task<IActionResult> DeleteFieldAsync([FromRoute] DeleteFieldRequestDto request)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var user = await _accountService.GetAccountFromUserId(userGuid);
+
+        if (user == null) return NotFound("User not found");
+
+        var organizationId = user.Organization?.Id ?? user.Membership?.Team?.Organization?.Id;
+
+        var field = await _dbContext.Fields
+                            .Where(f => f.Id == request.FieldId && f.OrganizationId == organizationId)
+                            .Include(f => f.Gallery)
+                                .ThenInclude(g => g!.Images)
+                            .Include(f => f.ThumbnailImage)
+                            .FirstOrDefaultAsync();
+
+        if (field == null) return NotFound("Field not found");
+
+        if (field.ThumbnailImage != null)
+        {
+            await _imageService.DeleteImage(field.ThumbnailImage);
+        }
+
+        if (field.Gallery != null)
+        {
+            var images = field.Gallery.Images.ToList();
+            foreach (var image in images)
+            {
+                await _imageService.DeleteImage(image);
+            }
+
+            _dbContext.Galleries.Remove(field.Gallery);
+        }
+
+        _dbContext.Fields.Remove(field);
+        await _dbContext.SaveChangesAsync();
+
         return Ok("Delete field");
     }
 

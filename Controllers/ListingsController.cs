@@ -209,9 +209,10 @@ public class ListingsController : BaseController
         if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
         var listing = await _dbContext.Listings
-                                .Where(l => l.Id == request.ListingId)
-                                .Where(l => l.UserId == userGuid)
+                                .Where(l => l.Id == request.ListingId && l.UserId == userGuid)
                                 .Include(l => l.ThumbnailImage)
+                                .Include(l => l.Gallery)
+                                    .ThenInclude(g => g!.Images)
                                 .FirstOrDefaultAsync();
 
         if (listing == null) return NotFound("Entry not found"); // TODO nije bas not found nego nije taj id za tog korisnika mogce je da neki levi korisnik brrise i dobice not found ali treba unathorized ili nesto tako...
@@ -222,18 +223,15 @@ public class ListingsController : BaseController
             await _imageService.DeleteImage(listing.ThumbnailImage);
         }
 
-        var gallery = await _dbContext.Galleries
-                                    .Where(g => g.Id == listing.GalleryId)
-                                    .Include(g => g.Images)
-                                    .FirstOrDefaultAsync();
-        if (gallery != null)
+
+        if (listing.Gallery != null)
         {
-            var images = gallery.Images.ToList();
+            var images = listing.Gallery.Images.ToList();
             foreach (var image in images)
             {
                 await _imageService.DeleteImage(image);
             }
-            _dbContext.Galleries.Remove(gallery);
+            _dbContext.Galleries.Remove(listing.Gallery);
         }
 
         _dbContext.Listings.Remove(listing);

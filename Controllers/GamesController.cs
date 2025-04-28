@@ -164,10 +164,38 @@ public class GamesController : BaseController
         return StatusCode(201, game.Id);
     }
 
-    [HttpDelete]
-    public IActionResult DeleteGame()
+    [Authorize]
+    [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.OrganizationOwner)]
+    [HttpDelete("{GameId}")]
+    public async Task<IActionResult> DeleteGameAsync([FromRoute] DeleteGameRequestDto request)
     {
-        return Ok("Create game");
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var user = await _accountService.GetAccountFromUserId(userGuid);
+
+        if (user == null) return NotFound("User not found");
+
+        var organizationId = user.Organization?.Id ?? user.Membership?.Team?.Organization?.Id;
+
+        var game = await _dbContext.Games
+                            .Where(f => f.Id == request.GameId && f.OrganizationId == organizationId)
+                            .FirstOrDefaultAsync();
+
+        if (game == null) return NotFound("Game not found");
+
+
+        var entries = await _dbContext.Entries
+                            .Where(e => e.GameId == request.GameId)
+                            .ToListAsync();
+
+
+        _dbContext.Entries.RemoveRange(entries);
+        _dbContext.Games.Remove(game);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok("Delete field");
     }
 
 
