@@ -21,10 +21,10 @@ public class FieldsController : BaseController
 {
     private readonly AppDbContext _dbContext;
     private readonly IAccountService _accountService;
-    private readonly IImageService _imageService;
+    private readonly ICloudImageService _imageService;
     private readonly IGoogleMapsService _googleMapsService;
 
-    public FieldsController(AppDbContext dbContext, IAccountService accountService, IImageService imageService, IGoogleMapsService googleMapsService)
+    public FieldsController(AppDbContext dbContext, IAccountService accountService, ICloudImageService imageService, IGoogleMapsService googleMapsService)
     {
         this._dbContext = dbContext;
         this._accountService = accountService;

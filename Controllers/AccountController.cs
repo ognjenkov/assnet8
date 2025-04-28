@@ -18,8 +18,8 @@ namespace assnet8.Controllers;
 public class AccountController : BaseController
 {
     private readonly IAccountService _accountService;
-    private readonly IImageService _imageService;
-    public AccountController(IAccountService accountService, IImageService imageService)
+    private readonly ICloudImageService _imageService;
+    public AccountController(IAccountService accountService, ICloudImageService imageService)
     {
         this._accountService = accountService;
         this._imageService = imageService;

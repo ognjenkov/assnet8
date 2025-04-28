@@ -103,7 +103,7 @@ builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwa
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<ICloudImageService, AWSImageService>();
 
 builder.Services.AddHttpClient<IGoogleMapsService, GoogleMapsService>(client =>
 {

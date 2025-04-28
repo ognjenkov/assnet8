@@ -18,8 +18,8 @@ public class ServicesController : BaseController
 {
     private readonly AppDbContext _dbContext;
     private readonly IAccountService _accountService;
-    private readonly IImageService _imageService;
-    public ServicesController(AppDbContext dbContext, IImageService imageService, IAccountService accountService)
+    private readonly ICloudImageService _imageService;
+    public ServicesController(AppDbContext dbContext, ICloudImageService imageService, IAccountService accountService)
     {
         this._dbContext = dbContext;
         this._imageService = imageService;

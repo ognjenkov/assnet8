@@ -19,9 +19,9 @@ public class AuthController : BaseController
 {
     private readonly AppDbContext _dbContext;
     private readonly IJwtService _jwtService;
-    private readonly IImageService _imageService;
+    private readonly ICloudImageService _imageService;
 
-    public AuthController(AppDbContext dbContext, IJwtService jwtService, IImageService imageService)
+    public AuthController(AppDbContext dbContext, IJwtService jwtService, ICloudImageService imageService)
     {
         this._jwtService = jwtService;
         this._dbContext = dbContext;

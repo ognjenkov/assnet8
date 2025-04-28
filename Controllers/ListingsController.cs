@@ -10,15 +10,16 @@ using assnet8.Services.Images;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace assnet8.Controllers;
 [Route("listings")]
 public class ListingsController : BaseController
 {
     private readonly AppDbContext _dbContext;
-    private readonly IImageService _imageService;
+    private readonly ICloudImageService _imageService;
 
-    public ListingsController(AppDbContext dbContext, IImageService imageService)
+    public ListingsController(AppDbContext dbContext, ICloudImageService imageService)
     {
         this._dbContext = dbContext;
         this._imageService = imageService;
@@ -200,10 +201,45 @@ public class ListingsController : BaseController
     }
 
     [Authorize]
-    [HttpDelete]
-    public IActionResult DeleteListing()
+    [HttpDelete("{ListingId}")]
+    public async Task<IActionResult> DeleteListing([FromRoute] DeleteListingRequestDto request)
     {
-        return Ok("Delete listing");
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var listing = await _dbContext.Listings
+                                .Where(l => l.Id == request.ListingId)
+                                .Where(l => l.UserId == userGuid)
+                                .Include(l => l.ThumbnailImage)
+                                .FirstOrDefaultAsync();
+
+        if (listing == null) return NotFound("Entry not found"); // TODO nije bas not found nego nije taj id za tog korisnika mogce je da neki levi korisnik brrise i dobice not found ali treba unathorized ili nesto tako...
+
+
+        if (listing.ThumbnailImage != null)
+        {
+            await _imageService.DeleteImage(listing.ThumbnailImage);
+        }
+
+        var gallery = await _dbContext.Galleries
+                                    .Where(g => g.Id == listing.GalleryId)
+                                    .Include(g => g.Images)
+                                    .FirstOrDefaultAsync();
+        if (gallery != null)
+        {
+            var images = gallery.Images.ToList();
+            foreach (var image in images)
+            {
+                await _imageService.DeleteImage(image);
+            }
+            _dbContext.Galleries.Remove(gallery);
+        }
+
+        _dbContext.Listings.Remove(listing);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok();
     }
 
     [Authorize]

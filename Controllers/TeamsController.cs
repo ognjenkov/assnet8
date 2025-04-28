@@ -16,9 +16,9 @@ namespace assnet8.Controllers;
 public class TeamsController : BaseController
 {
     private readonly AppDbContext _dbContext;
-    private readonly IImageService _imageService;
+    private readonly ICloudImageService _imageService;
 
-    public TeamsController(AppDbContext dbContext, IImageService imageService)
+    public TeamsController(AppDbContext dbContext, ICloudImageService imageService)
     {
         this._dbContext = dbContext;
         this._imageService = imageService;

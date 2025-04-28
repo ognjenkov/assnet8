@@ -12,10 +12,10 @@ namespace assnet8.Controllers;
 [Route("images")]
 public class ImagesController : BaseController
 {
-    private readonly IImageService _imageService;
+    private readonly ICloudImageService _imageService;
     private readonly AppDbContext _dbContext;
 
-    public ImagesController(IImageService imageService, IConfiguration configuration, AppDbContext dbContext)
+    public ImagesController(ICloudImageService imageService, IConfiguration configuration, AppDbContext dbContext)
     {
         this._imageService = imageService;
         this._dbContext = dbContext;
