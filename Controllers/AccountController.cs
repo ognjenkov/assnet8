@@ -64,6 +64,7 @@ public class AccountController : BaseController
             },
             Membership = user.Membership == null ? null : new MembershipSimpleDto
             {
+                Id = user.Membership.Id,
                 CreateDateTime = user.Membership.CreateDateTime,
                 Roles = user.Membership.Roles,
                 Team = new TeamSimpleDto
@@ -188,6 +189,7 @@ public class AccountController : BaseController
             },
             Memberships = team.Memberships.Select(m => new MembershipSimpleDto
             {
+                Id = m.Id,
                 CreateDateTime = m.CreateDateTime,
                 Roles = m.Roles,
                 User = new UserSimpleDto
@@ -259,6 +261,7 @@ public class AccountController : BaseController
             },
             Membership = user.Membership == null ? null : new MembershipSimpleDto
             {
+                Id = user.Membership.Id,
                 CreateDateTime = user.Membership.CreateDateTime,
                 Roles = user.Membership.Roles,
                 Team = user.Membership.Team == null ? null : new TeamSimpleDto

@@ -24,12 +24,15 @@ public class FieldsController : BaseController
     private readonly ICloudImageService _imageService;
     private readonly IGoogleMapsService _googleMapsService;
 
-    public FieldsController(AppDbContext dbContext, IAccountService accountService, ICloudImageService imageService, IGoogleMapsService googleMapsService)
+    private readonly INextJsRevalidationService _nextJsRevalidationService;
+
+    public FieldsController(AppDbContext dbContext, IAccountService accountService, ICloudImageService imageService, IGoogleMapsService googleMapsService, INextJsRevalidationService nextJsRevalidationService)
     {
         this._dbContext = dbContext;
         this._accountService = accountService;
         this._imageService = imageService;
         this._googleMapsService = googleMapsService;
+        this._nextJsRevalidationService = nextJsRevalidationService;
     }
     [HttpGet]
     public async Task<IActionResult> GetFields()
@@ -257,6 +260,19 @@ public class FieldsController : BaseController
             await _dbContext.SaveChangesAsync();
         }
 
+        try
+        {
+            await Task.WhenAll(
+                _nextJsRevalidationService.RevalidatePathAsync($"/fields/{field.Id}"),
+                _nextJsRevalidationService.RevalidateTagAsync("fields"),
+                _nextJsRevalidationService.RevalidateTagAsync($"/fields/{field.Id}")
+                );
+        }
+        catch (System.Exception)
+        {
+            System.Console.WriteLine("Failed to revalidate");
+        }
+
         return StatusCode(201, field.Id);
     }
 
@@ -314,4 +330,31 @@ public class FieldsController : BaseController
         return Ok("Update field");
     }
 
+    [HttpGet("{FieldId}/simple")]
+    public async Task<IActionResult> GetFieldSimple([FromRoute] GetFieldSimpleRequestDto request)
+    {
+        var field = await _dbContext.Fields
+                            .Where(f => f.Id == request.FieldId)
+                            .Include(f => f.ThumbnailImage)
+                            .Include(f => f.Location)
+                            .FirstOrDefaultAsync();
+
+        if (field == null) return NotFound("Field not found");
+
+        return Ok(new FieldSimpleDto
+        {
+            Id = field.Id,
+            Name = field.Name,
+            ThumbnailImage = field.ThumbnailImage == null ? null : new ImageSimpleDto
+            {
+                Url = Utils.Utils.GenerateImageFrontendLink(field.ThumbnailImage.Id)
+            },
+            GoogleMapsLink = field.GoogleMapsLink,
+            Location = field.Location == null ? null : new LocationSimpleDto
+            {
+                Id = field.Location.Id,
+                Region = field.Location.Region
+            }
+        });
+    }
 }

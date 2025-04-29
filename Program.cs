@@ -110,12 +110,11 @@ builder.Services.AddHttpClient<IGoogleMapsService, GoogleMapsService>(client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
-builder.Services.AddHttpClient("NextJsRevalidation", client =>
+builder.Services.AddHttpClient<INextJsRevalidationService, NextJsRevalidationService>(client =>
 {
     client.BaseAddress = new Uri(config["Frontend:Url"]!);
     client.Timeout = TimeSpan.FromSeconds(30);
 });
-builder.Services.AddSingleton<INextJsRevalidationService, NextJsRevalidationService>();
 builder.Services.AddSignalR()
     .AddJsonProtocol(options =>
     {

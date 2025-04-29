@@ -202,6 +202,7 @@ public class TeamsController : BaseController
             },
             Memberships = team.Memberships.Select(m => new MembershipSimpleDto
             {
+                Id = m.Id,
                 CreateDateTime = m.CreateDateTime,
                 Roles = [],
                 User = new UserSimpleDto
@@ -217,33 +218,31 @@ public class TeamsController : BaseController
         });
     }
 
-    [HttpGet("members/{TeamId}")]
-    public IActionResult GetTeamMembers([FromRoute] string TeamId)
+    [HttpGet("{TeamId}/card")]
+    public Task<IActionResult> GetTeamCard([FromRoute] GetTeamRequestDto request)
     {
-        return Ok("Get team members " + TeamId);
+        throw new NotImplementedException();
     }
 
-    [Authorize]
-    [VerifyRoles(Roles.Creator, Roles.TeamLeader)]
-    [HttpPatch("members/add")]
-    public IActionResult AddTeamMember()
+    [HttpGet("{TeamId}/simple")]
+    public async Task<IActionResult> GetTeamSimple([FromRoute] GetTeamSimpleRequestDto request)
     {
-        return Ok("Add team member");
+        var team = await _dbContext.Teams
+                                .Where(t => t.Id == request.TeamId)
+                                .Include(t => t.LogoImage)
+                                .FirstOrDefaultAsync();
+
+        if (team == null) return NotFound("Team not found");
+
+        return Ok(new TeamSimpleDto
+        {
+            Id = team.Id,
+            Name = team.Name,
+            LogoImage = team.LogoImage == null ? null : new ImageSimpleDto
+            {
+                Url = Utils.Utils.GenerateImageFrontendLink(team.LogoImage.Id)
+            }
+        });
     }
 
-    [Authorize]
-    [VerifyRoles(Roles.Creator, Roles.TeamLeader)]
-    [HttpPatch("members/remove")]
-    public IActionResult RemoveTeamMember()
-    {
-        return Ok("Remove team member");
-    }
-
-    [Authorize]
-    [VerifyRoles(Roles.Creator, Roles.TeamLeader)]
-    [HttpPatch("members/update")]
-    public IActionResult UpdateTeamMember()
-    {
-        return Ok("Update team members");
-    }
 }

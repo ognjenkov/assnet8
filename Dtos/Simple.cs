@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 namespace assnet8.Dtos.Simple;
 public class MembershipSimpleDto
 {
+    public required Guid Id { get; set; }
     public DateTime CreateDateTime { get; set; }
     public List<Role> Roles { get; set; } = [];
     public TeamSimpleDto? Team { get; set; }

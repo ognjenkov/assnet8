@@ -40,7 +40,30 @@ public class OrganizationsController : BaseController
         return Ok("Delete organization");
     }
 
-    [HttpGet("card/{OrganizationId}")]
+    [AllowAnonymous]
+    [HttpGet("{OrganizationId}/simple")]
+    public async Task<IActionResult> GetOrganizationSimple([FromRoute] GetOrganizationSimpleRequestDto request)
+    {
+        var organization = await _dbContext.Organizations
+                            .Where(o => o.Id == request.OrganizationId)
+                            .Include(o => o.LogoImage)
+                            .FirstOrDefaultAsync();
+
+        if (organization == null) return NotFound("Organization not found");
+
+        return Ok(new OrganizationSimpleDto
+        {
+            Id = organization.Id,
+            Name = organization.Name,
+            LogoImage = organization.LogoImage == null ? null : new ImageSimpleDto
+            {
+                Url = Utils.Utils.GenerateImageFrontendLink(organization.LogoImage.Id)
+            }
+        });
+    }
+
+    [AllowAnonymous]
+    [HttpGet("{OrganizationId}/card")]
     public async Task<IActionResult> GetOrganizationCard([FromRoute] GetOrganizationCardRequestDto request)
     {
         var organization = await _dbContext.Organizations
