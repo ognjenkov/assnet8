@@ -25,6 +25,7 @@ public class UsersController : BaseController
     {
         var user = await _dbContext.Users
                                      .Where(u => u.Id == request.UserId)
+                                     .Include(u => u.ProfileImage)
                                      .FirstOrDefaultAsync();
 
 
@@ -47,6 +48,7 @@ public class UsersController : BaseController
     {
         var user = await _dbContext.Users
                                      .Where(u => u.Id == request.UserId)
+                                     .Include(u => u.ProfileImage)
                                      .FirstOrDefaultAsync();
 
 
