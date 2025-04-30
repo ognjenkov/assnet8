@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using assnet8.Dtos.Listings.Request;
 using assnet8.Dtos.Listings.Response;
+using assnet8.Dtos.Pagination;
 using assnet8.Services.Images;
 using assnet8.Services.Utils;
 
@@ -29,15 +30,22 @@ public class ListingsController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetListings()
+    public async Task<IActionResult> GetListings([FromQuery] GetListingsRequestDto request)
     {
-        var listings = await _dbContext.Listings
+        var query = _dbContext.Listings
                                             .Include(l => l.ThumbnailImage)
                                             .Include(l => l.Tags)
                                             .Include(l => l.Location)
-                                            .ToListAsync();
+                                            .AsQueryable();
 
-        return Ok(listings.Select(l => new GetListingsResponseDto
+        var totalCount = await query.CountAsync();
+
+        var listings = await query
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync();
+
+        var listingDtos = listings.Select(l => new GetListingsResponseDto
         {
             Id = l.Id,
             RefreshDateTime = l.RefreshDateTime,
@@ -57,7 +65,15 @@ public class ListingsController : BaseController
                 Id = l.Location.Id,
                 Region = l.Location.Region
             }
-        }));
+        });
+
+        return Ok(new PaginatedResponseDto<GetListingsResponseDto>
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            Items = listingDtos
+        });
     }
 
     [HttpGet("{ListingId}")]

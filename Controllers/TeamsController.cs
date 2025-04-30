@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
+using assnet8.Dtos.Pagination;
 using assnet8.Dtos.Teams.Request;
 using assnet8.Dtos.Teams.Response;
 using assnet8.Services.Images;
@@ -88,15 +89,22 @@ public class TeamsController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetTeams()
+    public async Task<IActionResult> GetTeams([FromQuery] GetTeamsRequestDto request)
     {
-        var teams = await _dbContext.Teams
+        var query = _dbContext.Teams
                                         .Include(t => t.LogoImage)
                                         .Include(t => t.Memberships)
                                         .Include(t => t.LogoImage)
-                                        .ToListAsync();
+                                        .AsQueryable();
 
-        return Ok(teams.Select(t => new GetTeamsResponseDto
+        var totalCount = await query.CountAsync();
+
+        var teams = await query
+                            .Skip((request.PageNumber - 1) * request.PageSize)
+                            .Take(request.PageSize)
+                            .ToListAsync();
+
+        var teamDtos = teams.Select(t => new GetTeamsResponseDto
         {
             Id = t.Id,
             Name = t.Name,
@@ -109,7 +117,15 @@ public class TeamsController : BaseController
                 Id = t.Location.Id,
                 Region = t.Location.Region
             }
-        }));
+        });
+
+        return Ok(new PaginatedResponseDto<GetTeamsResponseDto>
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            Items = teamDtos
+        });
     }
 
     [Authorize]

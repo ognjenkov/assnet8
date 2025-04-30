@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
+using assnet8.Dtos.Pagination;
 using assnet8.Dtos.Services.Request;
 using assnet8.Dtos.Services.Response;
 using assnet8.Services.Account;
@@ -26,9 +27,9 @@ public class ServicesController : BaseController
         this._accountService = accountService;
     }
     [HttpGet]
-    public async Task<IActionResult> GetServices()
+    public async Task<IActionResult> GetServices([FromQuery] GetServicesRequestDto request)
     {
-        var services = await _dbContext.Services
+        var query = _dbContext.Services
                                             .Include(s => s.ThumbnailImage)
                                             .Include(s => s.CreatedByUser)
                                             .ThenInclude(u => u!.ProfileImage)
@@ -36,8 +37,16 @@ public class ServicesController : BaseController
                                             .Include(s => s.Organization)
                                             .ThenInclude(o => o!.LogoImage)
                                             .Include(s => s.Location)
-                                            .ToListAsync();
-        return Ok(services.Select(s => new GetServicesResponseDto
+                                            .AsQueryable();
+
+        var totalCount = await query.CountAsync();
+
+        var services = await query
+                                .Skip((request.PageNumber - 1) * request.PageSize)
+                                .Take(request.PageSize)
+                                .ToListAsync();
+
+        var serviceDtos = services.Select(s => new GetServicesResponseDto
         {
             Id = s.Id,
             Title = s.Title,
@@ -70,7 +79,16 @@ public class ServicesController : BaseController
                 Id = s.Location.Id,
                 Region = s.Location.Region
             }
-        }));
+        });
+
+
+        return Ok(new PaginatedResponseDto<GetServicesResponseDto>
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            Items = serviceDtos
+        });
     }
 
     [Authorize]

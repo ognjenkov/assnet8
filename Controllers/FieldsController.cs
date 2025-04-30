@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using assnet8.Dtos.Fields.Request;
 using assnet8.Dtos.Fields.Response;
+using assnet8.Dtos.Pagination;
 using assnet8.Services.Account;
 using assnet8.Services.Images;
 using assnet8.Services.Utils;
@@ -35,15 +36,38 @@ public class FieldsController : BaseController
         this._nextJsRevalidationService = nextJsRevalidationService;
     }
     [HttpGet]
-    public async Task<IActionResult> GetFields()
+    public async Task<IActionResult> GetFields([FromQuery] GetFieldsRequestDto request)
     {
-        var fields = await _dbContext.Fields
-                                        .Include(f => f.ThumbnailImage)
-                                        .Include(f => f.Location)
-                                        .Include(f => f.Organization)
-                                        .ThenInclude(o => o!.LogoImage)
-                                        .ToListAsync();
-        return Ok(fields.Select(f => new GetFieldsResponseDto
+        var query = _dbContext.Fields
+                              .Include(f => f.ThumbnailImage)
+                              .Include(f => f.Location)
+                              .Include(f => f.Organization)
+                              .ThenInclude(o => o!.LogoImage)
+                              .AsQueryable();
+
+        // if (!string.IsNullOrWhiteSpace(request.Name))
+        // {
+        //     query = query.Where(f => f.Name.Contains(request.Name));
+        // }
+
+        // if (request.OrganizationId.HasValue)
+        // {
+        //     query = query.Where(f => f.OrganizationId == request.OrganizationId.Value);
+        // }
+
+        // if (!string.IsNullOrWhiteSpace(request.Region))
+        // {
+        //     query = query.Where(f => f.Location != null && f.Location.Region == request.Region);
+        // }
+
+        var totalCount = await query.CountAsync();
+
+        var fields = await query
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync();
+
+        var fieldDtos = fields.Select(f => new GetFieldsResponseDto
         {
             Id = f.Id,
             Name = f.Name,
@@ -68,7 +92,15 @@ public class FieldsController : BaseController
                     Url = Utils.Utils.GenerateImageFrontendLink(f.Organization.LogoImage.Id)
                 }
             }
-        }));
+        });
+
+        return Ok(new PaginatedResponseDto<GetFieldsResponseDto>
+        {
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            Items = fieldDtos
+        });
     }
 
     [Authorize]

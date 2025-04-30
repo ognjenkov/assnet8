@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using assnet8.Dtos.Games.Request;
 using assnet8.Dtos.Games.Response;
+using assnet8.Dtos.Pagination;
 using assnet8.Services.Account;
 
 using Microsoft.AspNetCore.Authorization;
@@ -25,9 +26,9 @@ public class GamesController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetGames()
+    public async Task<IActionResult> GetGames([FromQuery] GetGamesRequestDto request)
     {
-        var games = await _dbContext.Games
+        var query = _dbContext.Games
                                         .Include(g => g.Organization)
                                         .ThenInclude(o => o!.LogoImage)
                                         .Include(g => g.Field)
@@ -35,9 +36,16 @@ public class GamesController : BaseController
                                         .Include(g => g.Field)
                                         .ThenInclude(f => f!.Location)
                                         .Include(g => g.Tags)
-                                        .ToListAsync();
+                                        .AsQueryable();
 
-        return Ok(games.Select(g => new GetGamesResponseDto
+        var totalCount = await query.CountAsync();
+
+        var games = await query
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync();
+
+        var gamesDto = games.Select(g => new GetGamesResponseDto
         {
             Id = g.Id,
             Title = g.Title,
@@ -68,7 +76,15 @@ public class GamesController : BaseController
                     Region = g.Field.Location.Region
                 }
             }
-        }));
+        });
+
+        return Ok(new PaginatedResponseDto<GetGamesResponseDto>
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            Items = gamesDto
+        });
     }
 
     [HttpGet("{GameId}")]
