@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using assnet8.Dtos.Listings.Request;
 using assnet8.Dtos.Listings.Response;
 using assnet8.Services.Images;
+using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +19,13 @@ public class ListingsController : BaseController
 {
     private readonly AppDbContext _dbContext;
     private readonly ICloudImageService _imageService;
+    private readonly INextJsRevalidationService _nextJsRevalidationService;
 
-    public ListingsController(AppDbContext dbContext, ICloudImageService imageService)
+    public ListingsController(AppDbContext dbContext, ICloudImageService imageService, INextJsRevalidationService nextJsRevalidationService)
     {
         this._dbContext = dbContext;
         this._imageService = imageService;
+        this._nextJsRevalidationService = nextJsRevalidationService;
     }
 
     [HttpGet]
@@ -119,7 +122,7 @@ public class ListingsController : BaseController
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateListing([FromForm] CreateListingRequestDto request)
-    {
+    { // TODO buying nisam uradio
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
 
@@ -197,6 +200,20 @@ public class ListingsController : BaseController
             await _dbContext.SaveChangesAsync();
         }
 
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("listings"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
+                );
+        }
+        catch (System.Exception)
+        {
+        }
+
+
         return StatusCode(201, listing.Id);
     }
 
@@ -217,6 +234,16 @@ public class ListingsController : BaseController
 
         if (listing == null) return NotFound("Entry not found"); // TODO nije bas not found nego nije taj id za tog korisnika mogce je da neki levi korisnik brrise i dobice not found ali treba unathorized ili nesto tako...
 
+        try
+        {
+            _dbContext.Listings.Remove(listing);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            return BadRequest("Listing cannot be deleted due to existing references.");
+        }
+
 
         if (listing.ThumbnailImage != null)
         {
@@ -234,16 +261,41 @@ public class ListingsController : BaseController
             _dbContext.Galleries.Remove(listing.Gallery);
         }
 
-        _dbContext.Listings.Remove(listing);
         await _dbContext.SaveChangesAsync();
+
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/listings/{listing.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("listings"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
+                );
+        }
+        catch (System.Exception)
+        {
+        }
 
         return Ok();
     }
 
     [Authorize]
     [HttpPatch]
-    public IActionResult UpdateListing()
+    public IActionResult UpdateListing([FromForm] CreateListingRequestDto request)
     {
+        // try
+        // {
+        //     await Task.WhenAll(
+        //             _nextJsRevalidationService.RevalidatePathAsync($"/listings/{listing.Id}"),
+        //             _nextJsRevalidationService.RevalidateTagAsync("listings"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
+        //         );
+        // }
+        // catch (System.Exception)
+        // {
+        // }
+
         return Ok("Update listing");
     }
 

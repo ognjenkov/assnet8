@@ -8,6 +8,7 @@ using assnet8.Dtos.Account.Request;
 using assnet8.Dtos.Account.Response;
 using assnet8.Services.Account;
 using assnet8.Services.Images;
+using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +20,12 @@ public class AccountController : BaseController
 {
     private readonly IAccountService _accountService;
     private readonly ICloudImageService _imageService;
-    public AccountController(IAccountService accountService, ICloudImageService imageService)
+    private readonly INextJsRevalidationService _nextJsRevalidationService;
+    public AccountController(IAccountService accountService, ICloudImageService imageService, INextJsRevalidationService nextJsRevalidationService)
     {
         this._accountService = accountService;
         this._imageService = imageService;
+        this._nextJsRevalidationService = nextJsRevalidationService;
     }
 
     [HttpGet("account-information")]
@@ -226,67 +229,23 @@ public class AccountController : BaseController
         });
     }
 
-    [HttpGet("card/{UserId}")]
-    public async Task<IActionResult> GetAccountCard([FromRoute] GetAccountCardRequestDto request)
-    {
-        var user = await _accountService.GetAccountFromUserId(request.UserId);
-        if (user == null) return NotFound("User not found");
-
-        return Ok(new GetAccountCardResponseDto
-        {
-            Id = user.Id,
-            Username = user.Username,
-            ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
-            {
-                Url = Utils.Utils.GenerateImageFrontendLink(user.ProfileImage.Id)
-            },
-            Services = user.Services?.Select(s => new ServiceSimpleDto
-            {
-                Id = s.Id,
-                Title = s.Title,
-                CreatedDateTime = s.CreatedDateTime,
-                ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
-                {
-                    Url = Utils.Utils.GenerateImageFrontendLink(s.ThumbnailImage.Id)
-                }
-            }).ToList() ?? [],
-            Organization = user.Organization == null ? null : new OrganizationSimpleDto
-            {
-                Id = user.Organization.Id,
-                Name = user.Organization.Name,
-                LogoImage = user.Organization.LogoImage == null ? null : new ImageSimpleDto
-                {
-                    Url = Utils.Utils.GenerateImageFrontendLink(user.Organization.LogoImage.Id)
-                }
-            },
-            Membership = user.Membership == null ? null : new MembershipSimpleDto
-            {
-                Id = user.Membership.Id,
-                CreateDateTime = user.Membership.CreateDateTime,
-                Roles = user.Membership.Roles,
-                Team = user.Membership.Team == null ? null : new TeamSimpleDto
-                {
-                    Id = user.Membership.Team.Id,
-                    Name = user.Membership.Team.Name,
-                    LogoImage = user.Membership.Team.LogoImage == null ? null : new ImageSimpleDto
-                    {
-                        Url = Utils.Utils.GenerateImageFrontendLink(user.Membership.Team.LogoImage.Id)
-                    }
-                },
-            }
-        });
-
-    }
-
     [HttpDelete]
-    public IActionResult DeleteAccount()
+    public async Task<IActionResult> DeleteAccount()
     {
+        // organicenja, ako je u timu, ako je u organizaciji, 
+        // TODO revalidate user i revalidate membership i revalidate organization
+
+        await _nextJsRevalidationService.RevalidateTagAsync("user-id");
         return Ok("Account deleted");
     }
 
     [HttpPatch]
-    public IActionResult UpdateAccount()
+    public async Task<IActionResult> UpdateAccount()
     {
+        // ovde ne moze da se promeni da li je u org, da li je u timu, rolovi itd...
+        // ovde cu pustiti bazu da mi baca errore
+
+        await _nextJsRevalidationService.RevalidateTagAsync("user-id");
         return Ok("Update account");
     }
 }

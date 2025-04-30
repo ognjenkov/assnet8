@@ -282,11 +282,9 @@ public class FieldsController : BaseController
     public async Task<IActionResult> DeleteFieldAsync([FromRoute] DeleteFieldRequestDto request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null) return Unauthorized();
-        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+        if (userId == null || !Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
         var user = await _accountService.GetAccountFromUserId(userGuid);
-
         if (user == null) return NotFound("User not found");
 
         var organizationId = user.Organization?.Id ?? user.Membership?.Team?.Organization?.Id;
@@ -300,6 +298,16 @@ public class FieldsController : BaseController
 
         if (field == null) return NotFound("Field not found");
 
+        try
+        {
+            _dbContext.Fields.Remove(field);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            return BadRequest("Field cannot be deleted due to existing references.");
+        }
+
         if (field.ThumbnailImage != null)
         {
             await _imageService.DeleteImage(field.ThumbnailImage);
@@ -307,19 +315,31 @@ public class FieldsController : BaseController
 
         if (field.Gallery != null)
         {
-            var images = field.Gallery.Images.ToList();
-            foreach (var image in images)
+            foreach (var image in field.Gallery.Images)
             {
                 await _imageService.DeleteImage(image);
             }
 
             _dbContext.Galleries.Remove(field.Gallery);
         }
-
-        _dbContext.Fields.Remove(field);
         await _dbContext.SaveChangesAsync();
 
-        return Ok("Delete field");
+        try
+        {
+            await Task.WhenAll(
+                _nextJsRevalidationService.RevalidatePathAsync($"/fields/{field.Id}"),
+                _nextJsRevalidationService.RevalidateTagAsync("fields"),
+                _nextJsRevalidationService.RevalidateTagAsync($"field-{field.Id}-simple"),
+                _nextJsRevalidationService.RevalidateTagAsync($"field-{field.Id}")
+            );
+        }
+        catch (System.Exception)
+        {
+            System.Console.WriteLine("Failed to revalidate");
+        }
+
+
+        return Ok("Field deleted successfully.");
     }
 
     [Authorize]

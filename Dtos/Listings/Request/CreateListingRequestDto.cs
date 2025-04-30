@@ -38,20 +38,18 @@ public class CreateListingRequestDtoValidator : AbstractValidator<CreateListingR
         RuleFor(x => x.Description)
             .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Description is required")
-            .MinimumLength(3).WithMessage("Title must be at least 3 characters")
-            .MaximumLength(600).WithMessage("Title must be at most 600 characters");
+            .MinimumLength(3).WithMessage("Description must be at least 3 characters")
+            .MaximumLength(600).WithMessage("Description must be at most 600 characters");
 
         RuleFor(x => x.Price)
             .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("Price is required")
-            .MinimumLength(3).WithMessage("Title must be at least 3 characters")
-            .MaximumLength(60).WithMessage("Title must be at most 60 characters");
+            .NotEmpty().WithMessage("Price is required");
 
         RuleFor(x => x.ContactInfo)
             .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("ContactInfo is required")
-            .MinimumLength(3).WithMessage("Title must be at least 3 characters")
-            .MaximumLength(60).WithMessage("Title must be at most 60 characters");
+            .MinimumLength(3).WithMessage("ContactInfo must be at least 3 characters")
+            .MaximumLength(60).WithMessage("ContactInfo must be at most 60 characters");
 
         RuleFor(x => x.LocationId)
             .Cascade(CascadeMode.Stop)
