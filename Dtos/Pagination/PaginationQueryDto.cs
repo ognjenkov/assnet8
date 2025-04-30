@@ -20,7 +20,7 @@ public class PaginationQueryDtoValidator : AbstractValidator<PaginationQueryDto>
             .GreaterThanOrEqualTo(1).WithMessage("Page number must be greater than or equal to 1.");
 
         RuleFor(x => x.PageSize)
-            .GreaterThanOrEqualTo(18).WithMessage("Page size must be greater than or equal to 18.")
+            .GreaterThanOrEqualTo(1).WithMessage("Page size must be greater than or equal to 1.")
             .LessThanOrEqualTo(100).WithMessage("Page size must be less than or equal to 100.");
     }
 }
