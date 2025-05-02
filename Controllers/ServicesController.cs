@@ -21,14 +21,12 @@ public class ServicesController : BaseController
     private readonly AppDbContext _dbContext;
     private readonly IAccountService _accountService;
     private readonly ICloudImageService _imageService;
-
     private readonly INextJsRevalidationService _nextJsRevalidationService;
     public ServicesController(AppDbContext dbContext, ICloudImageService imageService, IAccountService accountService, INextJsRevalidationService nextJsRevalidationService)
     {
         this._dbContext = dbContext;
         this._imageService = imageService;
         this._accountService = accountService;
-
         this._nextJsRevalidationService = nextJsRevalidationService;
     }
     [HttpGet]
@@ -43,6 +41,12 @@ public class ServicesController : BaseController
                                             .ThenInclude(o => o!.LogoImage)
                                             .Include(s => s.Location)
                                             .AsQueryable();
+
+        if (request.LocationIds != null && request.LocationIds.Length > 0)
+            query = query.Where(s => s.LocationId.HasValue && request.LocationIds.Contains(s.LocationId.Value));
+
+        if (request.TagIds != null && request.TagIds.Length > 0)
+            query = query.Where(s => s.Tags!.Any(t => request.TagIds.Contains(t.Id)));
 
         var totalCount = await query.CountAsync();
 
@@ -184,8 +188,6 @@ public class ServicesController : BaseController
                     // throw;
                 }
             }
-
-
 
             await _dbContext.SaveChangesAsync();
         }
@@ -351,6 +353,4 @@ public class ServicesController : BaseController
             }
         });
     }
-
-
 }

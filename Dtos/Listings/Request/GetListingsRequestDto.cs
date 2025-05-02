@@ -11,7 +11,7 @@ namespace assnet8.Dtos.Listings.Request;
 
 public class GetListingsRequestDto : PaginationQueryDto
 {
-    public ListingCondition[]? Condition { get; set; }
+    public ListingCondition[]? Conditions { get; set; }
     public ListingType? Type { get; set; }
     public Guid[]? LocationIds { get; set; }
     public Guid[]? TagIds { get; set; }

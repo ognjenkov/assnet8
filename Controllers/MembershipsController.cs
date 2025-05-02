@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using assnet8.Dtos.Memberships;
+using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +16,12 @@ namespace assnet8.Controllers;
 public class MembershipsController : BaseController
 {
     private readonly AppDbContext _dbContext;
+    private readonly INextJsRevalidationService _nextJsRevalidationService;
 
-    public MembershipsController(AppDbContext dbContext)
+    public MembershipsController(AppDbContext dbContext, INextJsRevalidationService nextJsRevalidationService)
     {
         this._dbContext = dbContext;
+        this._nextJsRevalidationService = nextJsRevalidationService;
     }
 
     [HttpGet("{TeamId}")]

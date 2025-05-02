@@ -43,6 +43,12 @@ public class GamesController : BaseController
                                         .Include(g => g.Tags)
                                         .AsQueryable();
 
+        if (request.LocationIds != null && request.LocationIds.Length > 0)
+            query = query.Where(g => g.Field!.LocationId.HasValue && request.LocationIds.Contains(g.Field.LocationId.Value));
+
+        if (request.TagIds != null && request.TagIds.Length > 0)
+            query = query.Where(g => g.Tags!.Any(t => request.TagIds.Contains(t.Id)));
+
         var totalCount = await query.CountAsync();
 
         var games = await query

@@ -38,6 +38,19 @@ public class ListingsController : BaseController
                                             .Include(l => l.Location)
                                             .AsQueryable();
 
+        if (request.LocationIds != null && request.LocationIds.Length > 0)
+            query = query.Where(l => l.LocationId.HasValue && request.LocationIds.Contains(l.LocationId.Value));
+
+        if (request.TagIds != null && request.TagIds.Length > 0)
+            query = query.Where(l => l.Tags!.Any(t => request.TagIds.Contains(t.Id)));
+
+        if (request.Type != null) query = query.Where(l => l.Type == request.Type);
+
+        if (request.Conditions != null && request.Conditions.Length > 0)
+            query = query.Where(l => request.Conditions.Contains(l.Condition));
+
+        // if(request.Search != null) query = query.Where(l => l.Title.Contains(request.Search));
+
         var totalCount = await query.CountAsync();
 
         var listings = await query
