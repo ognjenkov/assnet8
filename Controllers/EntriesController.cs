@@ -27,12 +27,12 @@ public class EntriesController : BaseController
         this._entriesHub = entriesHub;
     }
     [HttpGet("game/{GameId}")]
-    public IActionResult GetGameEntries([FromRoute] GetGameEntriesRequestDto request)
+    public async Task<ActionResult<IEnumerable<GetGameEntriesResponseDto>>> GetGameEntries([FromRoute] GetGameEntriesRequestDto request)
     {
-        var entries = _dbContext.Entries.Where(e => e.GameId == request.GameId)
+        var entries = await _dbContext.Entries.Where(e => e.GameId == request.GameId)
                                         .Include(e => e.User!)
                                             .ThenInclude(u => u.ProfileImage)
-                                        .ToList();
+                                        .ToListAsync();
         //TODO da li mi ovde fali neka provera, mislim da nema potrebe
         return Ok(entries.Select(e => new GetGameEntriesResponseDto
         {

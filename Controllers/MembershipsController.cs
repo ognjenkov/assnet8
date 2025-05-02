@@ -32,7 +32,7 @@ public class MembershipsController : BaseController
 
     [AllowAnonymous]
     [HttpGet("{TeamId}/simple")]
-    public async Task<IActionResult> GetTeamMembershipsSimple([FromRoute] GetTeamMembershipsSimpleRequestDto request)
+    public async Task<ActionResult<IEnumerable<MembershipSimpleDto>>> GetTeamMembershipsSimple([FromRoute] GetTeamMembershipsSimpleRequestDto request)
     {
         var memberships = await _dbContext.Memberships
                             .Where(m => m.TeamId == request.TeamId)
@@ -69,7 +69,7 @@ public class MembershipsController : BaseController
 
     [AllowAnonymous]
     [HttpGet("{TeamId}/{MembershipId}/simple")]
-    public async Task<IActionResult> GetTeamMembershipSimple([FromRoute] GetTeamMembershipSimpleRequestDto request)
+    public async Task<ActionResult<MembershipSimpleDto>> GetTeamMembershipSimple([FromRoute] GetTeamMembershipSimpleRequestDto request)
     {
         var membership = await _dbContext.Memberships
                             .Where(m => m.Id == request.MembershipId)

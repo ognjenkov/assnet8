@@ -31,7 +31,7 @@ public class GamesController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetGames([FromQuery] GetGamesRequestDto request)
+    public async Task<ActionResult<IEnumerable<GetGamesResponseDto>>> GetGames([FromQuery] GetGamesRequestDto request)
     {
         var query = _dbContext.Games
                                         .Include(g => g.Organization)
@@ -110,7 +110,7 @@ public class GamesController : BaseController
     }
 
     [HttpGet("{GameId}")]
-    public async Task<IActionResult> GetGame([FromRoute] GetGameRequestDto request)
+    public async Task<ActionResult<GetGameResponseDto>> GetGame([FromRoute] GetGameRequestDto request)
     {
         //ako je logged in dobija i prijave, ako ne samo game
         var game = await _dbContext.Games

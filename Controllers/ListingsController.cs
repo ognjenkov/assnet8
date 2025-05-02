@@ -30,7 +30,7 @@ public class ListingsController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetListings([FromQuery] GetListingsRequestDto request)
+    public async Task<ActionResult<IEnumerable<GetListingsResponseDto>>> GetListings([FromQuery] GetListingsRequestDto request)
     {
         var query = _dbContext.Listings
                                             .Include(l => l.ThumbnailImage)
@@ -101,7 +101,7 @@ public class ListingsController : BaseController
     }
 
     [HttpGet("{ListingId}")]
-    public async Task<IActionResult> GetListing([FromRoute] GetListingRequestDto request)
+    public async Task<ActionResult<GetListingResponseDto>> GetListing([FromRoute] GetListingRequestDto request)
     {
         var listing = await _dbContext.Listings
                                     .Where(l => l.Id == request.ListingId)

@@ -30,7 +30,7 @@ public class ServicesController : BaseController
         this._nextJsRevalidationService = nextJsRevalidationService;
     }
     [HttpGet]
-    public async Task<IActionResult> GetServices([FromQuery] GetServicesRequestDto request)
+    public async Task<ActionResult<PaginatedResponseDto<GetServicesResponseDto>>> GetServices([FromQuery] GetServicesRequestDto request)
     {
         var query = _dbContext.Services
                                             .Include(s => s.ThumbnailImage)
@@ -291,7 +291,7 @@ public class ServicesController : BaseController
     }
 
     [HttpGet("{ServiceId}")]
-    public async Task<IActionResult> GetService([FromRoute] GetServiceRequestDto request)
+    public async Task<ActionResult<GetServiceResponseDto>> GetService([FromRoute] GetServiceRequestDto request)
     {
         var service = await _dbContext.Services
                                     .Where(s => s.Id == request.ServiceId)

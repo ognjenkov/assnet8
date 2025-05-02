@@ -36,7 +36,7 @@ public class FieldsController : BaseController
         this._nextJsRevalidationService = nextJsRevalidationService;
     }
     [HttpGet]
-    public async Task<IActionResult> GetFields([FromQuery] GetFieldsRequestDto request)
+    public async Task<ActionResult<PaginatedResponseDto<GetFieldsResponseDto>>> GetFields([FromQuery] GetFieldsRequestDto request)
     {
         var query = _dbContext.Fields
                               .Include(f => f.ThumbnailImage)
@@ -117,7 +117,7 @@ public class FieldsController : BaseController
     [Authorize]
     [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.TeamLeader, Roles.Member, Roles.OrganizationOwner, Roles.ServiceProvider)]
     [HttpGet("owned")]
-    public async Task<IActionResult> GetOwnedFields()
+    public async Task<ActionResult<IEnumerable<GetOwnedFieldsResponseDto>>> GetOwnedFields()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var guidUserId = Guid.Parse(userId!);
@@ -150,7 +150,7 @@ public class FieldsController : BaseController
     }
 
     [HttpGet("{FieldId}")]
-    public async Task<IActionResult> GetField([FromRoute] GetFieldRequestDto request)
+    public async Task<ActionResult<GetFieldResponseDto>> GetField([FromRoute] GetFieldRequestDto request)
     {
         //vratices id organizacije, na frontu ce se proveriti dal je taj id jednak sa idjem tvoje organizacije onda ce da se provere tvoji rolovi i onda ces ima dugme edit ili delete itd...
         var field = await _dbContext.Fields.Where(f => f.Id == request.FieldId)
@@ -395,7 +395,7 @@ public class FieldsController : BaseController
     }
 
     [HttpGet("{FieldId}/simple")]
-    public async Task<IActionResult> GetFieldSimple([FromRoute] GetFieldSimpleRequestDto request)
+    public async Task<ActionResult<FieldSimpleDto>> GetFieldSimple([FromRoute] GetFieldSimpleRequestDto request)
     {
         var field = await _dbContext.Fields
                             .Where(f => f.Id == request.FieldId)

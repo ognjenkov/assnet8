@@ -29,7 +29,7 @@ public class AccountController : BaseController
     }
 
     [HttpGet("account-information")]
-    public async Task<IActionResult> GetAccountInformation()
+    public async Task<ActionResult<GetAccountInformationResponseDto>> GetAccountInformation()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         // return _httpContextAccessor.HttpContext?.User?.Identity?.Name; ovako se nabavlja u servisu
@@ -84,7 +84,7 @@ public class AccountController : BaseController
     }
 
     [HttpGet("organization-information")]
-    public async Task<IActionResult> GetOrganizationInformation()
+    public async Task<ActionResult<GetOrganizationInformationResponseDto>> GetOrganizationInformation()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         // return _httpContextAccessor.HttpContext?.User?.Identity?.Name; ovako se nabavlja u servisu
@@ -160,7 +160,7 @@ public class AccountController : BaseController
     }
 
     [HttpGet("team-information")]
-    public async Task<IActionResult> GetTeamInformation()
+    public async Task<ActionResult<GetTeamInformationResponseDto>> GetTeamInformation()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         // return _httpContextAccessor.HttpContext?.User?.Identity?.Name; ovako se nabavlja u servisu

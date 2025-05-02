@@ -29,7 +29,7 @@ public class AuthController : BaseController
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+    public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
     {
         var user = await _dbContext.Users
             .Where(u => u.Username == request.UsernameOrEmail || u.Email == request.UsernameOrEmail)
@@ -121,7 +121,7 @@ public class AuthController : BaseController
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto request)
+    public async Task<ActionResult<LoginResponseDto>> Refresh([FromBody] RefreshRequestDto request)
     {
         if (!Request.Cookies.TryGetValue("jwt", out string? refreshTokenCookie))
         {
@@ -201,38 +201,6 @@ public class AuthController : BaseController
         };
 
         return Ok(response);
-    }
-
-    [Authorize]
-    [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.TeamLeader, Roles.Member, Roles.OrganizationOwner, Roles.ServiceProvider)]
-    [HttpGet("get-cookie")]
-    public IActionResult GetCookie()
-    {
-        if (Request.Cookies.TryGetValue("jwt", out string? cookieValue))
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var roles = User.Claims
-                .Where(c => c.Type == ClaimTypes.Role) // Get all role claims
-                .Select(c => c.Value)
-                .ToList();
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("Invalid user token");
-            }
-
-            return Ok(new
-            {
-                CookieValue = cookieValue,
-                User = new
-                {
-                    Id = userId,
-                    Roles = roles
-                }
-            });
-        }
-
-        return NotFound("Cookie not found");
     }
 
     [HttpPost("register")]

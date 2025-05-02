@@ -75,7 +75,7 @@ public class OrganizationsController : BaseController
 
     [AllowAnonymous]
     [HttpGet("{OrganizationId}/simple")]
-    public async Task<IActionResult> GetOrganizationSimple([FromRoute] GetOrganizationSimpleRequestDto request)
+    public async Task<ActionResult<OrganizationSimpleDto>> GetOrganizationSimple([FromRoute] GetOrganizationSimpleRequestDto request)
     {
         var organization = await _dbContext.Organizations
                             .Where(o => o.Id == request.OrganizationId)
@@ -97,7 +97,7 @@ public class OrganizationsController : BaseController
 
     [AllowAnonymous]
     [HttpGet("{OrganizationId}/card")]
-    public async Task<IActionResult> GetOrganizationCard([FromRoute] GetOrganizationCardRequestDto request)
+    public async Task<ActionResult<GetOrganizationCardResponseDto>> GetOrganizationCard([FromRoute] GetOrganizationCardRequestDto request)
     {
         var organization = await _dbContext.Organizations
                             .Where(o => o.Id == request.OrganizationId)

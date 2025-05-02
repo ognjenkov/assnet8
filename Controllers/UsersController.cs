@@ -21,7 +21,7 @@ public class UsersController : BaseController
     }
 
     [HttpGet("{UserId}/simple")]
-    public async Task<IActionResult> GetUserSimple([FromRoute] GetUserSimpleRequestDto request)
+    public async Task<ActionResult<UserSimpleDto>> GetUserSimple([FromRoute] GetUserSimpleRequestDto request)
     {
         var user = await _dbContext.Users
                                      .Where(u => u.Id == request.UserId)

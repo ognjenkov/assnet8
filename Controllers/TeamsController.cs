@@ -19,14 +19,12 @@ public class TeamsController : BaseController
 {
     private readonly AppDbContext _dbContext;
     private readonly ICloudImageService _imageService;
-
     private readonly INextJsRevalidationService _nextJsRevalidationService;
 
     public TeamsController(AppDbContext dbContext, ICloudImageService imageService, INextJsRevalidationService nextJsRevalidationService)
     {
         this._dbContext = dbContext;
         this._imageService = imageService;
-
         this._nextJsRevalidationService = nextJsRevalidationService;
     }
 
@@ -108,7 +106,7 @@ public class TeamsController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetTeams([FromQuery] GetTeamsRequestDto request)
+    public async Task<ActionResult<PaginatedResponseDto<GetTeamsResponseDto>>> GetTeams([FromQuery] GetTeamsRequestDto request)
     {
         var query = _dbContext.Teams
                                         .Include(t => t.LogoImage)
@@ -203,7 +201,7 @@ public class TeamsController : BaseController
     }
 
     [HttpGet("{TeamId}")]
-    public async Task<IActionResult> GetTeam([FromRoute] GetTeamRequestDto request)
+    public async Task<ActionResult<GetTeamResponseDto>> GetTeam([FromRoute] GetTeamRequestDto request)
     {
         var team = await _dbContext.Teams
                                 .Where(t => t.Id == request.TeamId)
@@ -299,7 +297,7 @@ public class TeamsController : BaseController
     }
 
     [HttpGet("{TeamId}/simple")]
-    public async Task<IActionResult> GetTeamSimple([FromRoute] GetTeamSimpleRequestDto request)
+    public async Task<ActionResult<TeamSimpleDto>> GetTeamSimple([FromRoute] GetTeamSimpleRequestDto request)
     {
         var team = await _dbContext.Teams
                                 .Where(t => t.Id == request.TeamId)

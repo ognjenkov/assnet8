@@ -18,7 +18,7 @@ public class TagsController : BaseController
         this._dbContext = dbContext;
     }
     [HttpGet]
-    public async Task<IActionResult> GetTags()
+    public async Task<ActionResult<IEnumerable<GetTagsResponseDto>>> GetTags()
     {
         var tags = await _dbContext.Tags.ToListAsync();
         return Ok(tags.Select(t => new GetTagsResponseDto
@@ -29,7 +29,7 @@ public class TagsController : BaseController
         }));
     }
     [HttpGet("service")]
-    public async Task<IActionResult> GetServiceTags()
+    public async Task<ActionResult<IEnumerable<GetTagsResponseDto>>> GetServiceTags()
     {
         var tags = await _dbContext.Tags.Where(t => t.Type == TagType.Service).ToListAsync();
         return Ok(tags.Select(t => new GetTagsResponseDto
@@ -40,7 +40,7 @@ public class TagsController : BaseController
         }));
     }
     [HttpGet("game")]
-    public async Task<IActionResult> GetGameTags()
+    public async Task<ActionResult<IEnumerable<GetTagsResponseDto>>> GetGameTags()
     {
         var tags = await _dbContext.Tags.Where(t => t.Type == TagType.Game).ToListAsync();
         return Ok(tags.Select(t => new GetTagsResponseDto
@@ -51,7 +51,7 @@ public class TagsController : BaseController
         }));
     }
     [HttpGet("listing")]
-    public async Task<IActionResult> GetListingTags()
+    public async Task<ActionResult<IEnumerable<GetTagsResponseDto>>> GetListingTags()
     {
         var tags = await _dbContext.Tags.Where(t => t.Type == TagType.Listing).ToListAsync();
         return Ok(tags.Select(t => new GetTagsResponseDto

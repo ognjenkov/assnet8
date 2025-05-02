@@ -18,7 +18,7 @@ public class LocationsController : BaseController
         this._dbContext = dbContext;
     }
     [HttpGet]
-    public async Task<IActionResult> GetLocations()
+    public async Task<ActionResult<IEnumerable<GetLocationsResponseDto>>> GetLocations()
     {
         var locations = await _dbContext.Locations
                                             .Include(l => l.Municipalities)
