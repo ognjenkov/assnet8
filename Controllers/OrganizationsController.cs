@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using assnet8.Dtos.Organizations.Request;
 using assnet8.Dtos.Organizations.Response;
 using assnet8.Services.Images;
+using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -20,16 +21,34 @@ public class OrganizationsController : BaseController
     private readonly AppDbContext _dbContext;
     private readonly ICloudImageService _imageService;
 
-    public OrganizationsController(AppDbContext dbContext, ICloudImageService imageService)
+    private readonly INextJsRevalidationService _nextJsRevalidationService;
+
+    public OrganizationsController(AppDbContext dbContext, ICloudImageService imageService, INextJsRevalidationService nextJsRevalidationService)
     {
         this._dbContext = dbContext;
         this._imageService = imageService;
+
+        this._nextJsRevalidationService = nextJsRevalidationService;
     }
 
     [VerifyRoles(Roles.Creator, Roles.OrganizationOwner, Roles.Organizer, Roles.ServiceProvider)]
     [HttpPatch]
     public IActionResult UpdateOrganization()
     {
+        // try
+        // {
+        //     await Task.WhenAll(
+        //             _nextJsRevalidationService.RevalidatePathAsync($"/organizations/{organization.Id}"),
+        //             _nextJsRevalidationService.RevalidateTagAsync("organizations"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}-simple"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}")
+        //         );
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.WriteLine(ex);
+        // }
+
         return Ok("Update organization");
     }
 
@@ -37,6 +56,20 @@ public class OrganizationsController : BaseController
     [HttpDelete]
     public IActionResult DeleteOrganization()
     {
+
+        // try
+        // {
+        //     await Task.WhenAll(
+        //             _nextJsRevalidationService.RevalidatePathAsync($"/organizations/{organization.Id}"),
+        //             _nextJsRevalidationService.RevalidateTagAsync("organizations"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}-simple"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}")
+        //         );
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.WriteLine(ex);
+        // }
         return Ok("Delete organization");
     }
 
@@ -161,6 +194,20 @@ public class OrganizationsController : BaseController
         await _dbContext.Organizations.AddAsync(organization);
         await _dbContext.SaveChangesAsync();
 
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/organizations/{organization.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("organizations"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}")// TODO mozda revalidacije individualnog tima ovde?
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
         return StatusCode(201, organization.Id);
     }
 
@@ -205,6 +252,20 @@ public class OrganizationsController : BaseController
                 System.Console.WriteLine("Failed to upload organization image");
                 // throw;
             }
+        }
+
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/organizations/{organization.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("organizations"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
         }
 
         return StatusCode(201, organization.Id);

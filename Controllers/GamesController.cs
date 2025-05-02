@@ -8,6 +8,7 @@ using assnet8.Dtos.Games.Request;
 using assnet8.Dtos.Games.Response;
 using assnet8.Dtos.Pagination;
 using assnet8.Services.Account;
+using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +20,14 @@ public class GamesController : BaseController
     private readonly AppDbContext _dbContext;
     private readonly IAccountService _accountService;
 
-    public GamesController(AppDbContext dbContext, IAccountService accountService)
+    private readonly INextJsRevalidationService _nextJsRevalidationService;
+
+    public GamesController(AppDbContext dbContext, IAccountService accountService, INextJsRevalidationService nextJsRevalidationService)
     {
         this._dbContext = dbContext;
         this._accountService = accountService;
+
+        this._nextJsRevalidationService = nextJsRevalidationService;
     }
 
     [HttpGet]
@@ -85,6 +90,17 @@ public class GamesController : BaseController
             TotalCount = totalCount,
             Items = gamesDto
         });
+    }
+
+    [HttpGet("ids")]
+    public async Task<ActionResult<IEnumerable<Guid>>> GetGameIds()
+    {
+        var ids = await _dbContext.Games
+        .AsNoTracking()
+        .Select(p => p.Id)
+        .ToListAsync();
+
+        return Ok(ids);
     }
 
     [HttpGet("{GameId}")]
@@ -177,6 +193,20 @@ public class GamesController : BaseController
         await _dbContext.Games.AddAsync(game);
         await _dbContext.SaveChangesAsync();
 
+        try
+        {
+            await Task.WhenAll(
+                _nextJsRevalidationService.RevalidatePathAsync($"/games/{game.Id}"),
+                _nextJsRevalidationService.RevalidateTagAsync("games"),
+                _nextJsRevalidationService.RevalidateTagAsync($"game-{game.Id}"),
+                _nextJsRevalidationService.RevalidateTagAsync($"game-{game.Id}-simple")
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
         return StatusCode(201, game.Id);
     }
 
@@ -211,7 +241,21 @@ public class GamesController : BaseController
         _dbContext.Games.Remove(game);
         await _dbContext.SaveChangesAsync();
 
-        return Ok("Delete field");
+        try
+        {
+            await Task.WhenAll(
+                _nextJsRevalidationService.RevalidatePathAsync($"/games/{game.Id}"),
+                _nextJsRevalidationService.RevalidateTagAsync("games"),
+                _nextJsRevalidationService.RevalidateTagAsync($"game-{game.Id}"),
+                _nextJsRevalidationService.RevalidateTagAsync($"game-{game.Id}-simple")
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
+        return Ok("Delete game");
     }
 
 

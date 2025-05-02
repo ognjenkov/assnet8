@@ -9,6 +9,7 @@ using assnet8.Dtos.Services.Request;
 using assnet8.Dtos.Services.Response;
 using assnet8.Services.Account;
 using assnet8.Services.Images;
+using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,11 +21,15 @@ public class ServicesController : BaseController
     private readonly AppDbContext _dbContext;
     private readonly IAccountService _accountService;
     private readonly ICloudImageService _imageService;
-    public ServicesController(AppDbContext dbContext, ICloudImageService imageService, IAccountService accountService)
+
+    private readonly INextJsRevalidationService _nextJsRevalidationService;
+    public ServicesController(AppDbContext dbContext, ICloudImageService imageService, IAccountService accountService, INextJsRevalidationService nextJsRevalidationService)
     {
         this._dbContext = dbContext;
         this._imageService = imageService;
         this._accountService = accountService;
+
+        this._nextJsRevalidationService = nextJsRevalidationService;
     }
     [HttpGet]
     public async Task<IActionResult> GetServices([FromQuery] GetServicesRequestDto request)
@@ -89,6 +94,17 @@ public class ServicesController : BaseController
             TotalCount = totalCount,
             Items = serviceDtos
         });
+    }
+
+    [HttpGet("ids")]
+    public async Task<ActionResult<IEnumerable<Guid>>> GetServiceIds()
+    {
+        var ids = await _dbContext.Services
+        .AsNoTracking()
+        .Select(p => p.Id)
+        .ToListAsync();
+
+        return Ok(ids);
     }
 
     [Authorize]
@@ -169,7 +185,23 @@ public class ServicesController : BaseController
                 }
             }
 
+
+
             await _dbContext.SaveChangesAsync();
+        }
+
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/services/{service.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("services"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"service-{service.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"service-{service.Id}") // da li moze da revalidira nesto sto ne postoji? mozda trebam da revalidiram i odakle se zove ovo govno
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
         }
 
         return StatusCode(201, service.Id);
@@ -218,6 +250,20 @@ public class ServicesController : BaseController
         _dbContext.Services.Remove(service);
         await _dbContext.SaveChangesAsync();
 
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/services/{service.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("services"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"service-{service.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"service-{service.Id}")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
         return Ok("Delete service");
     }
 
@@ -226,6 +272,19 @@ public class ServicesController : BaseController
     [HttpPatch]
     public IActionResult UpdateService()
     {
+        // try
+        // {
+        //     await Task.WhenAll(
+        //             _nextJsRevalidationService.RevalidatePathAsync($"/services/{service.Id}"),
+        //             _nextJsRevalidationService.RevalidateTagAsync("services"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"service-{service.Id}-simple"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"service-{service.Id}") 
+        //         );
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.WriteLine(ex);
+        // }
         return Ok("Create service");
     }
 

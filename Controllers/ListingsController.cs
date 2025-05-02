@@ -76,6 +76,17 @@ public class ListingsController : BaseController
         });
     }
 
+    [HttpGet("ids")]
+    public async Task<ActionResult<IEnumerable<Guid>>> GetListingIds()
+    {
+        var ids = await _dbContext.Listings
+        .AsNoTracking()
+        .Select(p => p.Id)
+        .ToListAsync();
+
+        return Ok(ids);
+    }
+
     [HttpGet("{ListingId}")]
     public async Task<IActionResult> GetListing([FromRoute] GetListingRequestDto request)
     {
@@ -225,8 +236,9 @@ public class ListingsController : BaseController
                     _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
                 );
         }
-        catch (System.Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine(ex);
         }
 
 
@@ -282,14 +294,15 @@ public class ListingsController : BaseController
         try
         {
             await Task.WhenAll(
-                    _nextJsRevalidationService.RevalidatePathAsync($"/listings/{listing.Id}"),
+                    _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
                     _nextJsRevalidationService.RevalidateTagAsync("listings"),
                     _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
                     _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
                 );
         }
-        catch (System.Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine(ex);
         }
 
         return Ok();
@@ -302,14 +315,15 @@ public class ListingsController : BaseController
         // try
         // {
         //     await Task.WhenAll(
-        //             _nextJsRevalidationService.RevalidatePathAsync($"/listings/{listing.Id}"),
+        //             _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
         //             _nextJsRevalidationService.RevalidateTagAsync("listings"),
         //             _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
         //             _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
         //         );
         // }
-        // catch (System.Exception)
+        // catch (Exception ex)
         // {
+        //     Console.WriteLine(ex);
         // }
 
         return Ok("Update listing");

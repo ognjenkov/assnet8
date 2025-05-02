@@ -103,6 +103,17 @@ public class FieldsController : BaseController
         });
     }
 
+    [HttpGet("ids")]
+    public async Task<ActionResult<IEnumerable<Guid>>> GetFieldIds()
+    {
+        var ids = await _dbContext.Fields
+        .AsNoTracking()
+        .Select(p => p.Id)
+        .ToListAsync();
+
+        return Ok(ids);
+    }
+
     [Authorize]
     [VerifyRoles(Roles.Creator, Roles.Organizer, Roles.TeamLeader, Roles.Member, Roles.OrganizationOwner, Roles.ServiceProvider)]
     [HttpGet("owned")]
@@ -295,14 +306,15 @@ public class FieldsController : BaseController
         try
         {
             await Task.WhenAll(
-                _nextJsRevalidationService.RevalidatePathAsync($"/fields/{field.Id}"),
-                _nextJsRevalidationService.RevalidateTagAsync("fields"),
-                _nextJsRevalidationService.RevalidateTagAsync($"/fields/{field.Id}")
+                    _nextJsRevalidationService.RevalidatePathAsync($"/fields/{field.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("fields"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"field-{field.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"field-{field.Id}")
                 );
         }
-        catch (System.Exception)
+        catch (Exception ex)
         {
-            System.Console.WriteLine("Failed to revalidate");
+            Console.WriteLine(ex);
         }
 
         return StatusCode(201, field.Id);

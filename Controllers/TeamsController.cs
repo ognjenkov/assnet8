@@ -8,6 +8,7 @@ using assnet8.Dtos.Pagination;
 using assnet8.Dtos.Teams.Request;
 using assnet8.Dtos.Teams.Response;
 using assnet8.Services.Images;
+using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +20,14 @@ public class TeamsController : BaseController
     private readonly AppDbContext _dbContext;
     private readonly ICloudImageService _imageService;
 
-    public TeamsController(AppDbContext dbContext, ICloudImageService imageService)
+    private readonly INextJsRevalidationService _nextJsRevalidationService;
+
+    public TeamsController(AppDbContext dbContext, ICloudImageService imageService, INextJsRevalidationService nextJsRevalidationService)
     {
         this._dbContext = dbContext;
         this._imageService = imageService;
+
+        this._nextJsRevalidationService = nextJsRevalidationService;
     }
 
     [Authorize]
@@ -84,6 +89,20 @@ public class TeamsController : BaseController
 
         }
 
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/teams/{team.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("teams"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
 
         return StatusCode(201, team.Id);
     }
@@ -128,11 +147,36 @@ public class TeamsController : BaseController
         });
     }
 
+    [HttpGet("ids")]
+    public async Task<ActionResult<IEnumerable<Guid>>> GetTeamIds()
+    {
+        var ids = await _dbContext.Teams
+        .AsNoTracking()
+        .Select(p => p.Id)
+        .ToListAsync();
+
+        return Ok(ids);
+    }
+
     [Authorize]
     [VerifyRoles(Roles.Creator)]
     [HttpPatch]
     public IActionResult UpdateTeam()
     {
+        // try
+        // {
+        //     await Task.WhenAll(
+        //             _nextJsRevalidationService.RevalidatePathAsync($"/teams/{team.Id}"),
+        //             _nextJsRevalidationService.RevalidateTagAsync("teams"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}-simple"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}") 
+        //         );
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.WriteLine(ex);
+        // }
+
         return Ok("Update team");
     }
 
@@ -141,6 +185,20 @@ public class TeamsController : BaseController
     [HttpDelete]
     public IActionResult DeleteTeam()
     {
+        // try
+        // {
+        //     await Task.WhenAll(
+        //             _nextJsRevalidationService.RevalidatePathAsync($"/teams/{team.Id}"),
+        //             _nextJsRevalidationService.RevalidateTagAsync("teams"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}-simple"),
+        //             _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}") 
+        //         );
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.WriteLine(ex);
+        // }
+
         return Ok("delete team");
     }
 
