@@ -21,7 +21,7 @@ public class ImagesController : BaseController
         this._dbContext = dbContext;
     }
     [HttpGet("{ImageId}")]
-    public async Task<ActionResult<FileContentResult>> GetImage([FromRoute] GetImageRequestDto request)
+    public async Task<IActionResult> GetImage([FromRoute] GetImageRequestDto request)
     {
         var image = await _dbContext.Images.FirstOrDefaultAsync(i => i.Id == request.ImageId);
 
