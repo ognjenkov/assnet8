@@ -40,6 +40,7 @@ public class ServicesController : BaseController
                                             .Include(s => s.Organization)
                                             .ThenInclude(o => o!.LogoImage)
                                             .Include(s => s.Location)
+                                            .OrderByDescending(s => s.CreatedDateTime)
                                             .AsQueryable();
 
         if (request.LocationIds != null && request.LocationIds.Length > 0)

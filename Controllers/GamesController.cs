@@ -41,6 +41,7 @@ public class GamesController : BaseController
                                         .Include(g => g.Field)
                                         .ThenInclude(f => f!.Location)
                                         .Include(g => g.Tags)
+                                        .OrderByDescending(g => g.CreateDateTime)
                                         .AsQueryable();
 
         if (request.LocationIds != null && request.LocationIds.Length > 0)

@@ -11,6 +11,7 @@ public class Field
     public required string Name { get; set; }
     public required string GoogleMapsLink { get; set; }
     public double Latitude { get; set; }
+    public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
     public double Longitude { get; set; }
     public Guid? LocationId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)
     public Guid? GalleryId { get; set; } // jedan prema vise relationship (jedan ima guid drugi ima listu)

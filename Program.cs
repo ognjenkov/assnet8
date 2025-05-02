@@ -108,6 +108,7 @@ builder.Services.AddScoped<ICloudImageService, AWSImageService>();
 builder.Services.AddHttpClient<IGoogleMapsService, GoogleMapsService>(client =>
 {
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
 });
 
 builder.Services.AddHttpClient<INextJsRevalidationService, NextJsRevalidationService>(client =>

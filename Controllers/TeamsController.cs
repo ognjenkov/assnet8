@@ -112,6 +112,7 @@ public class TeamsController : BaseController
                                         .Include(t => t.LogoImage)
                                         .Include(t => t.Memberships)
                                         .Include(t => t.LogoImage)
+                                        .OrderByDescending(s => s.CreateDateTime)
                                         .AsQueryable();
 
         var totalCount = await query.CountAsync();

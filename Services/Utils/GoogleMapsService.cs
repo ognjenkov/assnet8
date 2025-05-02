@@ -14,7 +14,7 @@ public class GoogleMapsService : IGoogleMapsService
     public GoogleMapsService(HttpClient httpClient) // Direct injection
     {
         _httpClient = httpClient;
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+        // _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
     }
     public async Task<(double? Latitude, double? Longitude)> GetCoordinatesFromUrlAsync(string url)
     {

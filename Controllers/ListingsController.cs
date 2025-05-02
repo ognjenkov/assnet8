@@ -36,6 +36,7 @@ public class ListingsController : BaseController
                                             .Include(l => l.ThumbnailImage)
                                             .Include(l => l.Tags)
                                             .Include(l => l.Location)
+                                            .OrderByDescending(l => l.RefreshDateTime)
                                             .AsQueryable();
 
         if (request.LocationIds != null && request.LocationIds.Length > 0)

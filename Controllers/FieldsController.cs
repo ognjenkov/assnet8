@@ -43,6 +43,7 @@ public class FieldsController : BaseController
                               .Include(f => f.Location)
                               .Include(f => f.Organization)
                               .ThenInclude(o => o!.LogoImage)
+                              .OrderByDescending(f => f.CreateDateTime)
                               .AsQueryable();
 
         // if (!string.IsNullOrWhiteSpace(request.Name))
