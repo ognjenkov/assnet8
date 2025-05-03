@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using assnet8.Dtos.Auth;
 using assnet8.Services.Auth;
 using assnet8.Services.Images;
+
+using Google.Apis.Auth;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -20,12 +23,14 @@ public class AuthController : BaseController
     private readonly AppDbContext _dbContext;
     private readonly IJwtService _jwtService;
     private readonly ICloudImageService _imageService;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(AppDbContext dbContext, IJwtService jwtService, ICloudImageService imageService)
+    public AuthController(AppDbContext dbContext, IJwtService jwtService, ICloudImageService imageService, IConfiguration configuration)
     {
         this._jwtService = jwtService;
         this._dbContext = dbContext;
         this._imageService = imageService;
+        this._configuration = configuration;
     }
 
     [HttpPost("login")]
@@ -43,6 +48,11 @@ public class AuthController : BaseController
         if (user == null)
         {
             return NotFound("User not found"); // ovo se nikad nece desiti jer sam vec proverio u validaciji
+        }
+
+        if (!String.IsNullOrEmpty(user.GoogleSubjectId))
+        {
+            return Unauthorized(new { message = "Use google login" });
         }
 
         var passwordHasher = new PasswordHasher<string>();
@@ -92,7 +102,6 @@ public class AuthController : BaseController
         };
         return Ok(response);
     }
-
 
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
@@ -250,4 +259,165 @@ public class AuthController : BaseController
             // throw; predobra sintaksa za throwovanje expectiona tacno iz mesta odakle je dosao, kad bih ga uhavtion kao promenljivu putanjju bih sjebao ako bi ga throvovao ponovo
         }
     }
+
+    [HttpPost("login/google")]
+    public async Task<ActionResult<LoginResponseDto>> GoogleLogin([FromBody] GoogleLoginRequestDto request)
+    {
+        try
+        {
+            // 1. Get Google client configuration
+            var clientId = _configuration["Google:ClientId"];
+
+            // 2. Initialize the Google OAuth2 client
+            var client = new HttpClient();
+
+            // 3. Verify the access token by calling Google's tokeninfo endpoint
+            var response = await client.GetAsync($"https://oauth2.googleapis.com/tokeninfo?access_token={request.Token}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return Unauthorized("Invalid Google access token");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var tokenInfo = JsonSerializer.Deserialize<GoogleTokenInfo>(content);
+
+            // 4. Validate the token is for our application
+            if (tokenInfo?.aud != clientId)
+            {
+                return Unauthorized("Token was not issued for this application");
+            }
+
+            // 5. Get user info using the access token
+            var userInfoResponse = await client.GetAsync("https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + request.Token);
+            var userInfoContent = await userInfoResponse.Content.ReadAsStringAsync();
+            var googleUser = JsonSerializer.Deserialize<GoogleUserInfo>(userInfoContent);
+
+            if (googleUser?.email == null)
+            {
+                return BadRequest("Failed to get user info from Google");
+            }
+
+            var user = await _dbContext.Users
+            .Where(u => u.Email == googleUser.email)
+            .Include(u => u.Membership)
+                .ThenInclude(m => m!.Roles)
+            .Include(u => u.Organization)
+            .Include(u => u.ProfileImage)
+            .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = googleUser.email,
+                    Name = googleUser.name ?? googleUser.email.Split('@')[0],
+                    Username = googleUser.email.Split('@')[0],
+                    Password = "google-auth-no-password", // Mark as Google-authenticated user
+                    GoogleSubjectId = googleUser.sub,
+                    PersistLogin = request.Persist,
+
+                    //TODO : Add profile image
+                };
+
+                await _dbContext.Users.AddAsync(user);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            // 4. Generate your application tokens (same as regular login)
+            var accessToken = _jwtService.GenerateAccessToken(user, null);
+            var refreshTokenApp = _jwtService.GenerateRefreshToken(user, null);
+            var refreshTokenCookie = _jwtService.GenerateRefreshToken(user, null);
+
+            user.RefreshTokenApp = refreshTokenApp;
+            user.RefreshTokenCookie = refreshTokenCookie;
+            user.PersistLogin = request.Persist;
+
+            await _dbContext.SaveChangesAsync();
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.None,
+                Secure = true,
+                MaxAge = TimeSpan.FromDays(30)
+            };
+
+            Response.Cookies.Append("jwt", refreshTokenCookie, cookieOptions);
+
+            var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
+
+            if (user.Organization != null) roles.Add(new Role { Name = "OrganizationOwner" });
+
+            return Ok(new LoginResponseDto
+            {
+                AccessToken = accessToken,
+                RefreshTokenApp = refreshTokenApp,
+                Username = user.Username,
+                ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
+                {
+                    Url = user.ProfileImage.Url ?? Utils.Utils.GenerateImageFrontendLink(user.ProfileImage.Id)
+                },
+                Roles = roles,
+                TeamId = user.Membership?.TeamId ?? null,
+                OrganizationId = user.Organization?.Id != null ? (user.Membership?.TeamId != null ? null : user.Organization?.Id) : null
+            });
+        }
+        catch (InvalidJwtException ex)
+        {
+            return Unauthorized(new { message = "Invalid Google token", details = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred during Google login", details = ex.Message });
+        }
+    }
+
+
+}
+
+// Additional DTO classes
+public class GoogleTokenInfo
+{
+    [JsonPropertyName("aud")]
+    public string? aud { get; set; }  // Client ID
+
+    [JsonPropertyName("sub")]
+    public string? sub { get; set; }  // Google's unique user ID
+
+    [JsonPropertyName("exp")]
+    public string? exp { get; set; }  // Expiration time
+
+    [JsonPropertyName("iat")]
+    public string? iat { get; set; }  // Issued at time
+
+    [JsonPropertyName("scope")]
+    public string? scope { get; set; }
+}
+
+public class GoogleUserInfo
+{
+    [JsonPropertyName("sub")]
+    public string? sub { get; set; }  // Same as in tokeninfo
+
+    [JsonPropertyName("name")]
+    public string? name { get; set; }
+
+    [JsonPropertyName("given_name")]
+    public string? given_name { get; set; }
+
+    [JsonPropertyName("family_name")]
+    public string? family_name { get; set; }
+
+    [JsonPropertyName("picture")]
+    public string? picture { get; set; }
+
+    [JsonPropertyName("email")]
+    public string? email { get; set; }
+
+    [JsonPropertyName("email_verified")]
+    public bool email_verified { get; set; }
+
+    [JsonPropertyName("locale")]
+    public string? locale { get; set; }
 }

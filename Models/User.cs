@@ -15,8 +15,8 @@ public class User
     public string? RefreshTokenApp { get; set; }
     public string? RefreshTokenCookie { get; set; }
     public bool PersistLogin { get; set; } = false;
-    public string? GoogleUid { get; set; }
     public bool VerifiedEmail { get; set; } = false;
+    public string? GoogleSubjectId { get; set; }
     public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
     public Guid? ProfileImageId { get; set; }
     public List<Gallery> Galleries { get; set; } = [];

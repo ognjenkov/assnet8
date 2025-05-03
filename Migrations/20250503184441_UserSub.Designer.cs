@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using assnet8.Data;
 
@@ -11,9 +12,11 @@ using assnet8.Data;
 namespace assnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250503184441_UserSub")]
+    partial class UserSub
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -250,9 +253,6 @@ namespace assnet8.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Url")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
@@ -2362,6 +2362,9 @@ namespace assnet8.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("GoogleSubjectId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GoogleUid")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")

@@ -12,6 +12,7 @@ public class Image
     public required Guid S3Id { get; set; }
     public required string Title { get; set; }
     public required string Extension { get; set; }
+    public string? Url { get; set; }
     public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
     public Guid UserId { get; set; }
     public Guid? GalleryId { get; set; }
