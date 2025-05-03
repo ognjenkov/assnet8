@@ -105,17 +105,20 @@ builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICloudImageService, AWSImageService>();
 
-builder.Services.AddHttpClient<IGoogleMapsService, GoogleMapsService>(client =>
-{
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
-});
+
 
 builder.Services.AddHttpClient<INextJsRevalidationService, NextJsRevalidationService>(client =>
 {
     client.BaseAddress = new Uri(config["Frontend:Url"]!);
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+
+builder.Services.AddHttpClient<IGoogleMapsService, GoogleMapsService>(client =>
+{
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+});
+
 builder.Services.AddSignalR()
     .AddJsonProtocol(options =>
     {
