@@ -72,7 +72,7 @@ builder.Services.AddAuthentication(configureOptions =>
 
             // If the request is for our hub...
             var path = context.HttpContext.Request.Path;
-            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/entries"))
+            if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hubs/entries") || path.StartsWithSegments("/hubs/invites")))
             {
                 // Read the token from the query string
                 context.Token = accessToken;
@@ -143,6 +143,8 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHub<EntriesHub>("/hubs/entries");
+app.MapHub<InvitesTeamHub>("/hubs/invites/team");
+app.MapHub<InvitesUserHub>("/hubs/invites/user");
 
 // poslednji middleware
 app.MapControllers();

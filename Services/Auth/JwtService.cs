@@ -37,6 +37,10 @@ public class JwtService : IJwtService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
+        if (user.Membership?.TeamId != null)
+        {
+            claims.Add(new Claim("TeamId", user.Membership.TeamId.ToString()));
+        }
         // Add roles individually as separate claims
         if (user.Membership?.Roles != null)
         {
@@ -47,6 +51,7 @@ public class JwtService : IJwtService
         if (user.Organization != null)
         {
             claims.Add(new Claim(ClaimTypes.Role, "OrganizationOwner"));
+            claims.Add(new Claim("OrganizationId", user.Organization.Id.ToString()));
         }
 
         if (expires == null) expires = DateTime.UtcNow.AddMinutes(10);

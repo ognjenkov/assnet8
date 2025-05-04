@@ -17,6 +17,7 @@ public class Team
     public Organization? Organization { get; set; } // u slucaju da tim ima organizaciju prvno nastaje tim - zato je guid u orgu
     public User? Creator { get; set; }
     public Image? LogoImage { get; set; }
+    public List<Invite> Invites { get; set; } = [];
     public List<Membership> Memberships { get; set; } = [];
     public Location? Location { get; set; }
 }

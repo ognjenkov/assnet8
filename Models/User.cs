@@ -19,6 +19,7 @@ public class User
     public string? GoogleSubjectId { get; set; }
     public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
     public Guid? ProfileImageId { get; set; }
+    public List<Invite> Invites { get; set; } = [];
     public List<Gallery> Galleries { get; set; } = [];
     public List<Service> Services { get; set; } = [];
     public List<Listing> Listings { get; set; } = [];

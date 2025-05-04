@@ -27,8 +27,8 @@ public class AppDbContext : DbContext
     public DbSet<Tag> Tags { get; set; }
     public DbSet<Team> Teams { get; set; }
     public DbSet<User> Users { get; set; }
-
     public DbSet<Role> Roles { get; set; }
+    public DbSet<Invite> Invites { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,6 +48,8 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new RoleConfiguration());
         modelBuilder.ApplyConfiguration(new LocationConfiguration());
         modelBuilder.ApplyConfiguration(new TagConfiguration());
+        modelBuilder.ApplyConfiguration(new InviteConfiguration());
+
 
 
         // Configure the TagType enum to be stored as a string
@@ -81,6 +83,12 @@ public class AppDbContext : DbContext
                 v => (ListingStatus)Enum.Parse(typeof(ListingStatus), v) // Convert string back to enum when reading from the database
             );
 
+        modelBuilder.Entity<Invite>()
+            .Property(i => i.Status)
+            .HasConversion(
+                v => v.ToString(),
+                v => (InviteStatus)Enum.Parse(typeof(InviteStatus), v)
+            );
 
     }
 }

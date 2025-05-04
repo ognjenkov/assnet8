@@ -4,10 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using assnet8.Dtos.Memberships;
+using assnet8.Services.SignalR;
 using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace assnet8.Controllers;
 
@@ -18,7 +20,7 @@ public class MembershipsController : BaseController
     private readonly AppDbContext _dbContext;
     private readonly INextJsRevalidationService _nextJsRevalidationService;
 
-    public MembershipsController(AppDbContext dbContext, INextJsRevalidationService nextJsRevalidationService)
+    public MembershipsController(AppDbContext dbContext, INextJsRevalidationService nextJsRevalidationService, IHubContext<InvitesTeamHub> invitesTeamHub, IHubContext<InvitesUserHub> invitesUserHub)
     {
         this._dbContext = dbContext;
         this._nextJsRevalidationService = nextJsRevalidationService;
@@ -60,7 +62,6 @@ public class MembershipsController : BaseController
         }));
     }
 
-    [Authorize]
     [HttpGet("{TeamId}/{MembershipId}")]
     public IActionResult GetTeamMembership([FromRoute] string TeamId, [FromRoute] string MembershipId)
     {
@@ -97,12 +98,53 @@ public class MembershipsController : BaseController
         });
     }
 
-    [HttpPost("invite")]
-    public IActionResult InviteUserToTeam()
+
+    [HttpPost("invites/user")]
+    public IActionResult GetUserInvites()
+    {
+        throw new NotImplementedException();
+    }
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpPost("invites/team")]
+    public IActionResult GetTeamInvites()
     {
         throw new NotImplementedException();
     }
 
+    [HttpPost("invites/user/accept")]
+    public IActionResult AcceptInviteToTeam()
+    {
+        throw new NotImplementedException();
+    }
+    [HttpPost("invites/user/decline")]
+    public IActionResult DeclineInviteToTeam()
+    {
+        throw new NotImplementedException();
+    }
+    [HttpPost("invites/user/request")]
+    public IActionResult RequestToJoinToTeam()
+    {
+        throw new NotImplementedException();
+    }
+
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpPost("invites/team/accept")]
+    public IActionResult AcceptUserRequest()
+    {
+        throw new NotImplementedException();
+    }
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpPost("invites/team/decline")]
+    public IActionResult DeclineUserRequest()
+    {
+        throw new NotImplementedException();
+    }
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpPost("invites/team/request")]
+    public IActionResult InviteUserToTeam()
+    {
+        throw new NotImplementedException();
+    }
 
 
 }
