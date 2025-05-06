@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using FluentValidation;
 
-namespace assnet8.Dtos.Memberships;
+namespace assnet8.Dtos.Memberships.Request;
 
 public class GetTeamMembershipsSimpleRequestDto
 {

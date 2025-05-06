@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using assnet8.Dtos.Memberships;
+using assnet8.Dtos.Memberships.Response;
+using assnet8.Dtos.Memberships.Request;
 using assnet8.Services.SignalR;
 using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
 
 namespace assnet8.Controllers;
 
@@ -26,10 +28,92 @@ public class MembershipsController : BaseController
         this._nextJsRevalidationService = nextJsRevalidationService;
     }
 
-    [HttpGet("{TeamId}")]
-    public IActionResult GetTeamMemberships([FromRoute] string TeamId)
+    [HttpGet("roles")]
+    public async Task<ActionResult<IEnumerable<GetRolesResponseDto>>> GetRoles()
     {
-        throw new NotImplementedException();
+        var roles = await _dbContext.Roles.ToListAsync();
+
+        return Ok(roles.Select(r => new GetRolesResponseDto
+        {
+            Id = r.Id,
+            Name = r.Name
+        }));
+    }
+
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpPatch("user/roles")]
+    public async Task<ActionResult> UpdateUserRoles([FromBody] UpdateUserRolesRequestDto request)
+    {
+        var teamId = User.FindFirst("TeamId")?.Value;
+        if (teamId == null) return Unauthorized();
+        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized();
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        if (userGuid == request.UserId) return BadRequest("Modifying your own roles is not supported yet."); //TODO da se napravi
+
+        List<Role> roles = (List<Role>)HttpContext.Items["ValidatedRoles"]!; // ovo moze da pukne
+
+        var membership = await _dbContext.Memberships
+                            .Where(m => m.Id == request.UserId && m.TeamId == teamGuid)
+                            .Include(m => m.Roles)
+                            .FirstOrDefaultAsync();
+
+        if (membership == null) return NotFound("Membership not found");
+
+        membership.Roles.Clear();
+        membership.Roles.AddRange(roles);
+
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpDelete("user")]
+    public async Task<ActionResult> RemoveUserFromTeam([FromQuery] RemoveUserFromTeamRequestDto request)
+    {
+        var teamId = User.FindFirst("TeamId")?.Value;
+        if (teamId == null) return Unauthorized();
+        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized();
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        if (userGuid == request.UserId) return BadRequest("Can't remove yourself, leave team instead.");
+
+        var membership = await _dbContext.Memberships
+                            .Where(m => m.Id == request.UserId && m.TeamId == teamGuid)
+                            .FirstOrDefaultAsync();
+
+        if (membership == null) return NotFound("Membership not found");
+
+        _dbContext.Memberships.Remove(membership);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> LeaveTeam()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var membership = await _dbContext.Memberships
+                            .Where(m => m.UserId == userGuid)
+                            .FirstOrDefaultAsync();
+
+        if (membership == null) return NotFound("Membership not found");
+
+        _dbContext.Memberships.Remove(membership);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
     }
 
     [AllowAnonymous]
@@ -62,11 +146,6 @@ public class MembershipsController : BaseController
         }));
     }
 
-    [HttpGet("{TeamId}/{MembershipId}")]
-    public IActionResult GetTeamMembership([FromRoute] string TeamId, [FromRoute] string MembershipId)
-    {
-        throw new NotImplementedException();
-    }
 
     [AllowAnonymous]
     [HttpGet("{TeamId}/{MembershipId}/simple")]
