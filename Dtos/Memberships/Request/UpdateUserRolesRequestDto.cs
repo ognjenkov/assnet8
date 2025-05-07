@@ -56,6 +56,11 @@ public class UpdateUserRolesRequestDtoValidator : AbstractValidator<UpdateUserRo
             roles.Add(memberRole!);
         }
 
+        if (roles.Any(r => r.Name == Roles.Creator || r.Name == Roles.OrganizationOwner))
+        {
+            return false;
+        }
+
         if (httpContext != null)
         {
             httpContext.Items["ValidatedRoles"] = roles;
