@@ -15,7 +15,7 @@ public enum InviteStatus
 }
 public class Invite
 {
-    public required Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.NewGuid();
     public required Guid UserId { get; set; }
     public required Guid TeamId { get; set; }
     public bool Accepted { get; set; } = false;

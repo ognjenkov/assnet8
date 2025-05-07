@@ -1,0 +1,192 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+
+using assnet8.Dtos.Invites.Request;
+using assnet8.Dtos.Memberships.Respnose;
+using assnet8.Services.SignalR;
+using assnet8.Services.Utils;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+
+namespace assnet8.Controllers;
+
+[Authorize]
+[Route("invites")]
+public class InvitesController : BaseController
+{
+    private readonly AppDbContext _dbContext;
+    private readonly INextJsRevalidationService _nextJsRevalidationService;
+    private readonly IHubContext<InvitesTeamHub> _invitesTeamHub;
+    private readonly IHubContext<InvitesUserHub> _invitesUserHub;
+
+    public InvitesController(AppDbContext dbContext, INextJsRevalidationService nextJsRevalidationService, IHubContext<InvitesTeamHub> invitesTeamHub, IHubContext<InvitesUserHub> invitesUserHub)
+    {
+        this._dbContext = dbContext;
+        this._nextJsRevalidationService = nextJsRevalidationService;
+        this._invitesTeamHub = invitesTeamHub;
+        this._invitesUserHub = invitesUserHub;
+    }
+
+    [HttpPost("user")]
+    public async Task<ActionResult<IEnumerable<GetInvitesResponseDto>>> GetUserInvites()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var invites = await _dbContext.Invites
+                            .Where(i => i.UserId == userGuid)
+                            .Include(i => i.Team)
+                                .ThenInclude(t => t!.LogoImage)
+                            .OrderByDescending(i => i.CreateDateTime)
+                            .ToListAsync();
+
+        return Ok(invites.Select(invite => new GetInvitesResponseDto
+        {
+            Id = invite.Id,
+            Accepted = invite.Accepted,
+            CreateDateTime = invite.CreateDateTime,
+            ResponseDateTime = invite.ResponseDateTime,
+            Status = invite.Status,
+            Team = invite.Team == null ? null : new TeamSimpleDto
+            {
+                Id = invite.Team.Id,
+                Name = invite.Team.Name,
+                LogoImage = invite.Team.LogoImage == null ? null : new ImageSimpleDto
+                {
+                    Url = Utils.Utils.GenerateImageFrontendLink(invite.Team.LogoImage.Id)
+                }
+            }
+        }));
+    }
+    [HttpPost("user/accept")]
+    public async Task<IActionResult> AcceptInviteToTeam([FromBody] AcceptInviteToTeamRequestDto request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var teamId = User.FindFirst("TeamId")?.Value;
+        if (teamId != null) return BadRequest();
+
+        var invite = await _dbContext.Invites
+            .FirstOrDefaultAsync(i => i.Id == request.InviteId && i.UserId == userGuid);
+        if (invite == null) return NotFound("Invite not found");
+
+
+
+    }
+    [HttpPost("user/decline")]
+    public async Task<IActionResult> DeclineInviteToTeam([FromBody] DeclineInviteToTeamRequestDto request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+        //
+        var invite = await _dbContext.Invites
+            .FirstOrDefaultAsync(i => i.Id == request.InviteId && i.UserId == userGuid);
+        if (invite == null) return NotFound("Invite not found");
+
+        invite.Status = InviteStatus.Fullfilled;
+        invite.Accepted = false;
+        invite.ResponseDateTime = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
+    [HttpPost("user/request")]
+    public async Task<IActionResult> RequestToJoinToTeam([FromBody] RequestToJoinTeamRequestDto request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var teamId = User.FindFirst("TeamId")?.Value;
+        if (teamId != null) return BadRequest(); // da bi ovo stvarno funcionisalo potrebno je da se refreshuje token in time
+
+        var team = await _dbContext.Teams
+            .FirstOrDefaultAsync(t => t.Id == request.TeamId);
+        if (team == null) return NotFound("Team not found");
+
+        var invite = new Invite
+        {
+            UserId = userGuid,
+            TeamId = request.TeamId,
+            Status = InviteStatus.Requested
+        };
+
+        _dbContext.Invites.Add(invite);
+        await _dbContext.SaveChangesAsync();
+
+        //TODO refetch and refresh
+
+        return NoContent();
+    }
+
+
+
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpPost("team")]
+    public async Task<ActionResult<IEnumerable<GetInvitesResponseDto>>> GetTeamInvites()
+    {
+        var teamId = User.FindFirst("TeamId")?.Value;
+        if (teamId == null) return Unauthorized();
+        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized();
+
+        var invites = await _dbContext.Invites
+                            .Where(i => i.TeamId == teamGuid)
+                            .Include(i => i.User)
+                                .ThenInclude(u => u!.ProfileImage)
+                            .OrderByDescending(i => i.CreateDateTime)
+                            .ToListAsync();
+
+        return Ok(invites.Select(invite => new GetInvitesResponseDto
+        {
+            Id = invite.Id,
+            Accepted = invite.Accepted,
+            CreateDateTime = invite.CreateDateTime,
+            ResponseDateTime = invite.ResponseDateTime,
+            Status = invite.Status,
+            User = invite.User == null ? null : new UserSimpleDto
+            {
+                Id = invite.User.Id,
+                Username = invite.User.Username,
+                ProfileImage = invite.User.ProfileImage == null ? null : new ImageSimpleDto
+                {
+                    Url = Utils.Utils.GenerateImageFrontendLink(invite.User.ProfileImage.Id)
+                }
+            }
+        }));
+    }
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpPost("team/accept")]
+    public async Task<IActionResult> AcceptUserRequest([FromBody] AcceptUserRequestRequestDto request)
+    {
+        // proveri dal je vec u timu
+        // promeni njegov status,
+        // promeni sve ostale invajtove na declined
+
+        // osvezi kljueceve, napravi obavestenje, revalidate brda ruta, kada budes pravio servise primetices gde se ovakve stvari grupisu, npr kao revalidate i updejtovanje membershipa
+        throw new NotImplementedException();
+    }
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpPost("team/decline")]
+    public async Task<IActionResult> DeclineUserRequest([FromBody] DeclineUserRequestRequestDto request)
+    {
+        // nemoj da brises nego promeni status
+        throw new NotImplementedException();
+    }
+    [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
+    [HttpPost("team/invite")]
+    public async Task<IActionResult> InviteUserToTeam([FromBody] InviteUserToTeamRequestDto request)
+    {
+        //proveri dal je vec u timu,
+        // proveri dal si ga vec invajtovao(aktivno)
+        throw new NotImplementedException();
+    }
+}
