@@ -78,6 +78,9 @@ public class InvitesController : BaseController
             .FirstOrDefaultAsync(i => i.Id == request.InviteId && i.UserId == userGuid);
         if (invite == null) return NotFound("Invite not found");
 
+        if (invite.Status == InviteStatus.Fullfilled) return BadRequest("Invite already fullfilled");
+        if (invite.Status == InviteStatus.Requested) return Unauthorized("You cannot accept your own request");
+
 
 
     }
@@ -91,6 +94,8 @@ public class InvitesController : BaseController
         var invite = await _dbContext.Invites
             .FirstOrDefaultAsync(i => i.Id == request.InviteId && i.UserId == userGuid);
         if (invite == null) return NotFound("Invite not found");
+
+        if (invite.Status == InviteStatus.Fullfilled) return BadRequest("Invite already fullfilled");
 
         invite.Status = InviteStatus.Fullfilled;
         invite.Accepted = false;
@@ -113,18 +118,27 @@ public class InvitesController : BaseController
             .FirstOrDefaultAsync(t => t.Id == request.TeamId);
         if (team == null) return NotFound("Team not found");
 
+        var oldInvite = await _dbContext.Invites
+            .FirstOrDefaultAsync(i => i.UserId == userGuid && i.TeamId == request.TeamId);
+        if (oldInvite != null)
+        {
+            if (oldInvite.Status == InviteStatus.Requested) return BadRequest("Already requested");
+            if (oldInvite.Status == InviteStatus.Invited) { } // TODO uclani se u tim ---------------------------____________________--------------------------
+
+        }
+
         var invite = new Invite
         {
             UserId = userGuid,
             TeamId = request.TeamId,
-            Status = InviteStatus.Requested
+            Status = InviteStatus.Requested,
+            CreatedById = userGuid
         };
 
         _dbContext.Invites.Add(invite);
         await _dbContext.SaveChangesAsync();
 
         //TODO refetch and refresh
-
         return NoContent();
     }
 
@@ -167,26 +181,77 @@ public class InvitesController : BaseController
     [HttpPost("team/accept")]
     public async Task<IActionResult> AcceptUserRequest([FromBody] AcceptUserRequestRequestDto request)
     {
+        var teamId = User.FindFirst("TeamId")?.Value;
+        if (teamId == null) return Unauthorized();
+        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized();
+
+
         // proveri dal je vec u timu
         // promeni njegov status,
         // promeni sve ostale invajtove na declined
 
+        if (invite.Status == InviteStatus.Fullfilled) return BadRequest("Invite already fullfilled");
+        if (invite.Status == InviteStatus.Invited) return Unauthorized("You cannot accept your own request");
+
         // osvezi kljueceve, napravi obavestenje, revalidate brda ruta, kada budes pravio servise primetices gde se ovakve stvari grupisu, npr kao revalidate i updejtovanje membershipa
-        throw new NotImplementedException();
+
+
+
+
+
+
     }
     [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
     [HttpPost("team/decline")]
     public async Task<IActionResult> DeclineUserRequest([FromBody] DeclineUserRequestRequestDto request)
     {
-        // nemoj da brises nego promeni status
-        throw new NotImplementedException();
+        var teamId = User.FindFirst("TeamId")?.Value;
+        if (teamId == null) return Unauthorized();
+        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized();
+
+        var invite = await _dbContext.Invites
+                            .FirstOrDefaultAsync(i => i.Id == request.InviteId && i.TeamId == teamGuid);
+        if (invite == null) return NotFound("Invite not found");
+
+        if (invite.Status == InviteStatus.Fullfilled) return BadRequest("Invite already fullfilled");
+        if (invite.Status == InviteStatus.Invited) return Unauthorized("You cannot decline your own request"); // TODO mozda da stavim da moze u smislu da cancel operacija, ali onda bi bio delete ja mislim...
+
+        invite.Accepted = false;
+        invite.ResponseDateTime = DateTime.UtcNow;
+        invite.Status = InviteStatus.Fullfilled;
+        await _dbContext.SaveChangesAsync();
+
+        await _invitesUserHub.Clients.Groups(invite.UserId.ToString()).SendAsync("Refetch");
+        await _invitesTeamHub.Clients.Groups(invite.TeamId.ToString()).SendAsync("Refetch");
+
+        return NoContent();
     }
     [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
     [HttpPost("team/invite")]
     public async Task<IActionResult> InviteUserToTeam([FromBody] InviteUserToTeamRequestDto request)
     {
+        var teamId = User.FindFirst("TeamId")?.Value;
+        if (teamId == null) return Unauthorized();
+        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized();
+
+        var user = await _dbContext.Users
+                            .Include(u => u.Membership)
+                            .FirstOrDefaultAsync(u => u.Id == request.UserId);
+        if (user == null) return NotFound("User not found");
+
+        if (user.Membership?.TeamId != null) return BadRequest("User already in team");
+
+
         //proveri dal je vec u timu,
         // proveri dal si ga vec invajtovao(aktivno)
-        throw new NotImplementedException();
+
+
+
+
+
+
+
+
+
     }
 }

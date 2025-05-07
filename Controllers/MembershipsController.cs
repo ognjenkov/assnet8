@@ -81,7 +81,7 @@ public class MembershipsController : BaseController
     }
 
     [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
-    [HttpDelete("user")]
+    [HttpDelete("user/kick")]
     public async Task<ActionResult> RemoveUserFromTeam([FromQuery] RemoveUserFromTeamRequestDto request)
     {
         var teamId = User.FindFirst("TeamId")?.Value;

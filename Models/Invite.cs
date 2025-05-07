@@ -20,8 +20,12 @@ public class Invite
     public required Guid TeamId { get; set; }
     public bool Accepted { get; set; } = false;
     public required InviteStatus Status { get; set; }
+    public required Guid CreatedById { get; set; }
     public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
     public DateTime? ResponseDateTime { get; set; } = null;
     public Team? Team { get; set; }
     public User? User { get; set; }
+    public User? CreatedBy { get; set; }
+    public string? Message { get; set; }
+    public string? Response { get; set; }
 }
