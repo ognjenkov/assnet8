@@ -9,6 +9,7 @@ namespace assnet8.Dtos.Auth;
 
 public class LoginResponseDto
 {
+    public required Guid Id { get; set; }
     public required string Username { get; set; }
     public ImageSimpleDto? ProfileImage { get; set; }
     public List<Role>? Roles { get; set; }

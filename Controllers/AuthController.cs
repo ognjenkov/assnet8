@@ -89,6 +89,7 @@ public class AuthController : BaseController
 
         var response = new LoginResponseDto
         {
+            Id = user.Id,
             AccessToken = accessToken,
             RefreshTokenApp = refreshTokenApp,
             Username = user.Username,
@@ -197,6 +198,7 @@ public class AuthController : BaseController
 
         var response = new LoginResponseDto
         {
+            Id = user.Id,
             AccessToken = newAccessToken,
             RefreshTokenApp = newRefreshTokenApp,
             Username = user.Username,
@@ -351,6 +353,7 @@ public class AuthController : BaseController
 
             return Ok(new LoginResponseDto
             {
+                Id = user.Id,
                 AccessToken = accessToken,
                 RefreshTokenApp = refreshTokenApp,
                 Username = user.Username,
