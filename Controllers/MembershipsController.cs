@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
-using assnet8.Dtos.Memberships.Respnose;
 
 namespace assnet8.Controllers;
 
@@ -31,6 +30,32 @@ public class MembershipsController : BaseController
         this._nextJsRevalidationService = nextJsRevalidationService;
         this._invitesTeamHub = invitesTeamHub;
         this._invitesUserHub = invitesUserHub;
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> LeaveTeam()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var teamId = User.FindFirst("TeamId")?.Value;
+        if (teamId == null) return Unauthorized();
+        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized();
+
+        var roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+        if (roles.Any(r => r == Roles.Creator)) return BadRequest("Creator can't leave team, creator must delete team.");//TODO na fornu napravi nekako da je delete tim ako pokusa da izadje creator ....
+
+        var membership = await _dbContext.Memberships
+                            .Where(m => m.UserId == userGuid)
+                            .FirstOrDefaultAsync();
+
+        if (membership == null) return NotFound("Membership not found");
+        //TODO sta ako izadje neko sa servisima sta onda, ako se obrise tim/organizacija moraju i svi propratni servisi, ali ne i gejmovi? ili da gejmovi?
+        _dbContext.Memberships.Remove(membership);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
     }
 
     [HttpGet("roles")]
@@ -111,31 +136,7 @@ public class MembershipsController : BaseController
         return NoContent();
     }
 
-    [HttpDelete]
-    public async Task<IActionResult> LeaveTeam()
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null) return Unauthorized();
-        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
-        var teamId = User.FindFirst("TeamId")?.Value;
-        if (teamId == null) return Unauthorized();
-        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized();
-
-        var roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
-        if (roles.Any(r => r == Roles.Creator)) return BadRequest("Creator can't leave team, creator must delete team.");//TODO na fornu napravi nekako da je delete tim ako pokusa da izadje creator ....
-
-        var membership = await _dbContext.Memberships
-                            .Where(m => m.UserId == userGuid)
-                            .FirstOrDefaultAsync();
-
-        if (membership == null) return NotFound("Membership not found");
-        //TODO sta ako izadje neko sa servisima sta onda, ako se obrise tim/organizacija moraju i svi propratni servisi, ali ne i gejmovi? ili da gejmovi?
-        _dbContext.Memberships.Remove(membership);
-        await _dbContext.SaveChangesAsync();
-
-        return NoContent();
-    }
 
     [AllowAnonymous]
     [HttpGet("{TeamId}/simple")]

@@ -5,7 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 
 using assnet8.Dtos.Invites.Request;
-using assnet8.Dtos.Memberships.Respnose;
+using assnet8.Dtos.Invites.Respnose;
 using assnet8.Services.SignalR;
 using assnet8.Services.Utils;
 
@@ -472,7 +472,7 @@ public class InvitesController : BaseController
         return NoContent();
     }
     [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
-    [HttpPost("user/delete")]
+    [HttpPost("team/delete")]
     public async Task<IActionResult> DeleteInviteUserToTeam([FromBody] DeleteInviteUserToTeamRequestDto request)
     {
         var teamId = User.FindFirst("TeamId")?.Value;
