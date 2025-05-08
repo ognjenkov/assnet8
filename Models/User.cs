@@ -25,6 +25,7 @@ public class User
     public List<Listing> Listings { get; set; } = [];
     public List<Entry> Entries { get; set; } = [];
     public List<Image> UploadedImages { get; set; } = [];
+    public List<Invite> CreatedInvites { get; set; } = [];
     public Image? ProfileImage { get; set; }
     public Organization? Organization { get; set; }
     public Team? Team { get; set; }

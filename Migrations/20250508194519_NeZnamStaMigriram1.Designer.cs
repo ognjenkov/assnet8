@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using assnet8.Data;
 
@@ -11,9 +12,11 @@ using assnet8.Data;
 namespace assnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250508194519_NeZnamStaMigriram1")]
+    partial class NeZnamStaMigriram1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2636,7 +2639,7 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Team", "Team")
                         .WithMany("Invites")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("assnet8.Models.User", "User")

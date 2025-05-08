@@ -13,12 +13,17 @@ public class InviteConfiguration : IEntityTypeConfiguration<Invite>
     {
         builder.HasOne(i => i.User)
         .WithMany(u => u.Invites)
-        .HasForeignKey(i => i.TeamId)
-        .OnDelete(DeleteBehavior.Cascade);
+        .HasForeignKey(i => i.UserId)
+        .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(i => i.Team)
         .WithMany(t => t.Invites)
         .HasForeignKey(i => i.TeamId)
         .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(i => i.CreatedBy)
+        .WithMany(u => u.CreatedInvites)
+        .HasForeignKey(i => i.CreatedById)
+        .OnDelete(DeleteBehavior.NoAction);
     }
 }
