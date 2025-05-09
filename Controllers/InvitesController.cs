@@ -32,7 +32,7 @@ public class InvitesController : BaseController
         this._invitesUserHub = invitesUserHub;
     }
 
-    [HttpPost("user")]
+    [HttpGet("user")]
     public async Task<ActionResult<IEnumerable<GetInvitesResponseDto>>> GetUserInvites()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -282,7 +282,7 @@ public class InvitesController : BaseController
 
 
     [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
-    [HttpPost("team")]
+    [HttpGet("team")]
     public async Task<ActionResult<IEnumerable<GetInvitesResponseDto>>> GetTeamInvites()
     {
         var teamId = User.FindFirst("TeamId")?.Value;
