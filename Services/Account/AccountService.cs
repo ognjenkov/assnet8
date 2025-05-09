@@ -22,6 +22,7 @@ public class AccountService : IAccountService
     {
         return await _dbContext.Organizations
                                 .Where(o => o.TeamId == guid || o.UserId == guid)
+                                .AsSplitQuery()
                                 .Include(o => o.LogoImage)
                                 .Include(o => o.Team!)
                                     .ThenInclude(t => t.LogoImage)
@@ -39,6 +40,7 @@ public class AccountService : IAccountService
     {
         return await _dbContext.Teams
                                 .Where(t => t.Memberships.Any(m => m.UserId == userId))
+                                .AsSplitQuery()
                                 .Include(t => t.Creator!)
                                     .ThenInclude(u => u.ProfileImage)
                                 .Include(t => t.LogoImage)
@@ -57,6 +59,7 @@ public class AccountService : IAccountService
     {
         return await _dbContext.Users
                             .Where(u => u.Id == userId)
+                            .AsSplitQuery()
                             .Include(u => u.Listings)
                                 .ThenInclude(l => l.ThumbnailImage)
                             .Include(u => u.Entries)

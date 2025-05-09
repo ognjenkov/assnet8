@@ -107,6 +107,7 @@ public class InvitesController : BaseController
         }
         await _dbContext.SaveChangesAsync();
 
+        var memberRole = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == Roles.Member);
         // uclani se u tim
         var newMembership = new Membership
         {
@@ -114,7 +115,7 @@ public class InvitesController : BaseController
             TeamId = invite.TeamId,
             Roles = new List<Role>
             {
-                new Role { Id = new Guid("11111111-1111-1111-1111-111111111111"), Name = Roles.Member }
+                memberRole!
             }
         };
         await _dbContext.Memberships.AddAsync(newMembership);
@@ -203,6 +204,7 @@ public class InvitesController : BaseController
                     i.ResponseDateTime = DateTime.UtcNow;
                     i.Status = InviteStatus.Fullfilled;
                 }
+                var memberRole = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == Roles.Member);
 
                 // Create membership
                 var newMembership = new Membership
@@ -211,7 +213,7 @@ public class InvitesController : BaseController
                     TeamId = oldInvite.TeamId,
                     Roles = new List<Role>
                         {
-                            new Role { Id = new Guid("11111111-1111-1111-1111-111111111111"), Name = Roles.Member }
+                            memberRole!
                         }
                 };
                 await _dbContext.Memberships.AddAsync(newMembership);
@@ -353,6 +355,7 @@ public class InvitesController : BaseController
             invite.Status = InviteStatus.Fullfilled;
         }
         await _dbContext.SaveChangesAsync();
+        var memberRole = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == Roles.Member);
 
         // dodaj usera u tim
         var newMembership = new Membership
@@ -361,7 +364,7 @@ public class InvitesController : BaseController
             TeamId = teamGuid,
             Roles = new List<Role>
             {
-                new Role { Id = new Guid("11111111-1111-1111-1111-111111111111"), Name = Roles.Member }
+                memberRole!
             },
         };
         await _dbContext.Memberships.AddAsync(newMembership);
@@ -420,8 +423,8 @@ public class InvitesController : BaseController
     {
         // izvadi tim iz tokena
         var teamId = User.FindFirst("TeamId")?.Value;
-        if (teamId == null) return Unauthorized();
-        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized();
+        if (teamId == null) return Unauthorized("Teamid");
+        if (!Guid.TryParse(teamId, out var teamGuid)) return Unauthorized("Teamid");
 
         // nadji trazenog usera
         var user = await _dbContext.Users
@@ -454,16 +457,16 @@ public class InvitesController : BaseController
             }
         }
 
-        var CreatedById = User.FindFirst("Id")?.Value;
-        if (CreatedById == null) return Unauthorized();
-        if (!Guid.TryParse(CreatedById, out var createdByIdGuid)) return Unauthorized();
+        var createdById = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (createdById == null) return Unauthorized();
+        if (!Guid.TryParse(createdById, out var createdByGuid)) return Unauthorized();
 
         var invite = new Invite
         {
             UserId = user.Id,
             TeamId = teamGuid,
             Status = InviteStatus.Invited,
-            CreatedById = createdByIdGuid,
+            CreatedById = createdByGuid,
         };
         await _dbContext.Invites.AddAsync(invite);
         await _dbContext.SaveChangesAsync();

@@ -12,8 +12,8 @@ using assnet8.Data;
 namespace assnet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250411200909_NewMunicipalities")]
-    partial class NewMunicipalities
+    [Migration("20250509151241_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -124,6 +124,9 @@ namespace assnet8.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime>("CreateDateTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid?>("GalleryId")
                         .HasColumnType("uniqueidentifier");
 
@@ -131,8 +134,14 @@ namespace assnet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
                     b.Property<Guid?>("LocationId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -170,7 +179,7 @@ namespace assnet8.Migrations
                     b.Property<DateTime>("CreateDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("TeamId")
+                    b.Property<Guid?>("TeamId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Title")
@@ -198,11 +207,11 @@ namespace assnet8.Migrations
                     b.Property<DateTime>("CreateDateTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("FieldId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("LengthTime")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
@@ -246,6 +255,9 @@ namespace assnet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
@@ -259,6 +271,51 @@ namespace assnet8.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Images");
+                });
+
+            modelBuilder.Entity("assnet8.Models.Invite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Accepted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreateDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Response")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResponseDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Invites");
                 });
 
             modelBuilder.Entity("assnet8.Models.Listing", b =>
@@ -2197,6 +2254,110 @@ namespace assnet8.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tags");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111197"),
+                            Name = "CQB",
+                            Type = "Game"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111196"),
+                            Name = "Outdoors",
+                            Type = "Game"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111195"),
+                            Name = "Milsim",
+                            Type = "Game"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111194"),
+                            Name = "Replica",
+                            Type = "Listing"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111193"),
+                            Name = "Gear",
+                            Type = "Listing"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111192"),
+                            Name = "Uniform",
+                            Type = "Listing"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111191"),
+                            Name = "Attachment",
+                            Type = "Listing"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111180"),
+                            Name = "Assault Rifle",
+                            Type = "Listing"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111189"),
+                            Name = "Pistol",
+                            Type = "Listing"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111188"),
+                            Name = "AEG Service",
+                            Type = "Service"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111187"),
+                            Name = "GBB Service",
+                            Type = "Service"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111186"),
+                            Name = "HPA Service",
+                            Type = "Service"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111185"),
+                            Name = "Shop",
+                            Type = "Service"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111184"),
+                            Name = "Open games",
+                            Type = "Service"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111183"),
+                            Name = "Private games",
+                            Type = "Service"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111182"),
+                            Name = "Birthdays",
+                            Type = "Service"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111181"),
+                            Name = "Great Renting",
+                            Type = "Service"
+                        });
                 });
 
             modelBuilder.Entity("assnet8.Models.Team", b =>
@@ -2248,7 +2409,7 @@ namespace assnet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("GoogleUid")
+                    b.Property<string>("GoogleSubjectId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -2417,8 +2578,7 @@ namespace assnet8.Migrations
                     b.HasOne("assnet8.Models.Team", "Team")
                         .WithMany("Galleries")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("assnet8.Models.User", "User")
                         .WithMany("Galleries")
@@ -2466,6 +2626,33 @@ namespace assnet8.Migrations
                     b.Navigation("Gallery");
 
                     b.Navigation("UploadedImagesUser");
+                });
+
+            modelBuilder.Entity("assnet8.Models.Invite", b =>
+                {
+                    b.HasOne("assnet8.Models.User", "CreatedBy")
+                        .WithMany("CreatedInvites")
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("assnet8.Models.Team", "Team")
+                        .WithMany("Invites")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("assnet8.Models.User", "User")
+                        .WithMany("Invites")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Team");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("assnet8.Models.Listing", b =>
@@ -2698,6 +2885,8 @@ namespace assnet8.Migrations
                 {
                     b.Navigation("Galleries");
 
+                    b.Navigation("Invites");
+
                     b.Navigation("Memberships");
 
                     b.Navigation("Organization");
@@ -2705,9 +2894,13 @@ namespace assnet8.Migrations
 
             modelBuilder.Entity("assnet8.Models.User", b =>
                 {
+                    b.Navigation("CreatedInvites");
+
                     b.Navigation("Entries");
 
                     b.Navigation("Galleries");
+
+                    b.Navigation("Invites");
 
                     b.Navigation("Listings");
 
