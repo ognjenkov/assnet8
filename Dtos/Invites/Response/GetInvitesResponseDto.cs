@@ -14,4 +14,5 @@ public class GetInvitesResponseDto
     public required InviteStatus Status { get; set; }
     public required DateTime CreateDateTime { get; set; }
     public DateTime? ResponseDateTime { get; set; } = null;
+    public Guid CreatedById { get; set; }
 }

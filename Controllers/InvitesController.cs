@@ -61,7 +61,8 @@ public class InvitesController : BaseController
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(invite.Team.LogoImage.Id)
                 }
-            }
+            },
+            CreatedById = invite.CreatedById
         }));
     }
     [HttpPost("user/accept")]
@@ -311,7 +312,8 @@ public class InvitesController : BaseController
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(invite.User.ProfileImage.Id)
                 }
-            }
+            },
+            CreatedById = invite.CreatedById
         }));
     }
     [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
