@@ -97,7 +97,7 @@ public class InvitesController : BaseController
 
         // odbi sve ostale invite
         var invites = await _dbContext.Invites
-               .Where(i => i.UserId == userGuid && i.Status != InviteStatus.Fullfilled)
+               .Where(i => i.UserId == userGuid && i.Status != InviteStatus.Fullfilled && i.Id != invite.Id)
                .ToListAsync();
         foreach (var i in invites)
         {
@@ -346,7 +346,7 @@ public class InvitesController : BaseController
 
         // odbi sve ostale invitove za usera
         var invites = await _dbContext.Invites
-               .Where(i => i.UserId == invite.UserId && i.Status != InviteStatus.Fullfilled)
+               .Where(i => i.UserId == invite.UserId && i.Status != InviteStatus.Fullfilled && i.Id != invite.Id)
                .ToListAsync();
         foreach (var i in invites)
         {
