@@ -80,18 +80,34 @@ builder.Services.AddAuthentication(configureOptions =>
             return Task.CompletedTask;
         },
 
-        // NEW: Return 403 when token expires
-        OnAuthenticationFailed = context =>
+        // // NEW: Return 403 when token expires
+        // OnAuthenticationFailed = context =>
+        // {
+        //     if (context.Exception is SecurityTokenExpiredException)
+        //     {
+        //         context.Response.StatusCode = 403; // Forbidden
+        //         context.Response.ContentType = "application/json";
+        //         return context.Response.WriteAsync(
+        //             JsonSerializer.Serialize(new { error = "Token expired" })
+        //         );
+        //     }
+        //     // Default behavior for other authentication failures
+        //     return Task.CompletedTask;
+        // }
+        OnChallenge = context =>
         {
-            if (context.Exception is SecurityTokenExpiredException)
+            // Handle token expired specifically
+            if (context.AuthenticateFailure is SecurityTokenExpiredException)
             {
-                context.Response.StatusCode = 403; // Forbidden
+                context.HandleResponse(); // This prevents the default challenge logic from running
+                context.Response.StatusCode = 403;
                 context.Response.ContentType = "application/json";
                 return context.Response.WriteAsync(
                     JsonSerializer.Serialize(new { error = "Token expired" })
                 );
             }
-            // Default behavior for other authentication failures
+
+            // Let other challenges (like no token) proceed normally
             return Task.CompletedTask;
         }
     };
