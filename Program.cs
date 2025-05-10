@@ -78,6 +78,21 @@ builder.Services.AddAuthentication(configureOptions =>
                 context.Token = accessToken;
             }
             return Task.CompletedTask;
+        },
+
+        // NEW: Return 403 when token expires
+        OnAuthenticationFailed = context =>
+        {
+            if (context.Exception is SecurityTokenExpiredException)
+            {
+                context.Response.StatusCode = 403; // Forbidden
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsync(
+                    JsonSerializer.Serialize(new { error = "Token expired" })
+                );
+            }
+            // Default behavior for other authentication failures
+            return Task.CompletedTask;
         }
     };
 });

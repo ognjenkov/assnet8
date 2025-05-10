@@ -25,7 +25,7 @@ public class VerifyRoles : Attribute, IAuthorizationFilter
 
         if (!_allowedRoles.Any(role => userRoles.Contains(role)))
         {
-            context.Result = new ForbidResult(); // 403 Forbidden
+            context.Result = new UnauthorizedResult(); // 401 Unauthorized
         }
     }
 }
