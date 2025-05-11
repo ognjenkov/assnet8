@@ -33,6 +33,7 @@ public class ServicesController : BaseController
     public async Task<ActionResult<PaginatedResponseDto<GetServicesResponseDto>>> GetServices([FromQuery] GetServicesRequestDto request)
     {
         var query = _dbContext.Services
+                                            .AsSplitQuery()
                                             .Include(s => s.ThumbnailImage)
                                             .Include(s => s.CreatedByUser)
                                             .ThenInclude(u => u!.ProfileImage)
@@ -227,6 +228,7 @@ public class ServicesController : BaseController
 
         var service = await _dbContext.Services
                             .Where(f => f.Id == request.ServiceId && f.OrganizationId == organizationId)
+                            .AsSplitQuery()
                             .Include(f => f.Gallery)
                                 .ThenInclude(g => g!.Images)
                             .Include(f => f.ThumbnailImage)
@@ -296,6 +298,7 @@ public class ServicesController : BaseController
     {
         var service = await _dbContext.Services
                                     .Where(s => s.Id == request.ServiceId)
+                                    .AsSplitQuery()
                                     .Include(s => s.CreatedByUser)
                                         .ThenInclude(u => u!.ProfileImage)
                                     .Include(s => s.Gallery)

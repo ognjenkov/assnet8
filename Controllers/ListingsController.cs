@@ -33,6 +33,7 @@ public class ListingsController : BaseController
     public async Task<ActionResult<IEnumerable<GetListingsResponseDto>>> GetListings([FromQuery] GetListingsRequestDto request)
     {
         var query = _dbContext.Listings
+                                            .AsSplitQuery()
                                             .Include(l => l.ThumbnailImage)
                                             .Include(l => l.Tags)
                                             .Include(l => l.Location)
@@ -106,6 +107,7 @@ public class ListingsController : BaseController
     {
         var listing = await _dbContext.Listings
                                     .Where(l => l.Id == request.ListingId)
+                                    .AsSplitQuery()
                                     .Include(l => l.ThumbnailImage)
                                     .Include(l => l.Tags)
                                     .Include(l => l.Location)
@@ -269,6 +271,7 @@ public class ListingsController : BaseController
 
         var listing = await _dbContext.Listings
                                 .Where(l => l.Id == request.ListingId && l.UserId == userGuid)
+                                .AsSplitQuery()
                                 .Include(l => l.ThumbnailImage)
                                 .Include(l => l.Gallery)
                                     .ThenInclude(g => g!.Images)

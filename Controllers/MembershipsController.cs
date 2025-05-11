@@ -144,6 +144,7 @@ public class MembershipsController : BaseController
     {
         var memberships = await _dbContext.Memberships
                             .Where(m => m.TeamId == request.TeamId)
+                            .AsSplitQuery()
                             .Include(m => m.Roles)
                             .Include(m => m.User)
                                 .ThenInclude(u => u!.ProfileImage)
@@ -175,6 +176,7 @@ public class MembershipsController : BaseController
     {
         var membership = await _dbContext.Memberships
                             .Where(m => m.Id == request.MembershipId)
+                            .AsSplitQuery()
                             .Include(m => m.Roles)
                             .Include(m => m.User)
                                 .ThenInclude(u => u!.ProfileImage)

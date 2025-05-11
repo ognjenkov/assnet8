@@ -39,6 +39,7 @@ public class FieldsController : BaseController
     public async Task<ActionResult<PaginatedResponseDto<GetFieldsResponseDto>>> GetFields([FromQuery] GetFieldsRequestDto request)
     {
         var query = _dbContext.Fields
+                            .AsSplitQuery()
                               .Include(f => f.ThumbnailImage)
                               .Include(f => f.Location)
                               .Include(f => f.Organization)
@@ -129,6 +130,7 @@ public class FieldsController : BaseController
 
         var fields = await _dbContext.Fields
                                         .Where(f => f.OrganizationId == organizationId)
+                                        .AsSplitQuery()
                                         .Include(f => f.ThumbnailImage)
                                         .Include(f => f.Location)
                                         .ToListAsync();
@@ -155,6 +157,7 @@ public class FieldsController : BaseController
     {
         //vratices id organizacije, na frontu ce se proveriti dal je taj id jednak sa idjem tvoje organizacije onda ce da se provere tvoji rolovi i onda ces ima dugme edit ili delete itd...
         var field = await _dbContext.Fields.Where(f => f.Id == request.FieldId)
+                                    .AsSplitQuery()
                                     .Include(f => f.ThumbnailImage)
                                     .Include(f => f.Gallery)
                                         .ThenInclude(g => g!.Images)
@@ -336,6 +339,7 @@ public class FieldsController : BaseController
 
         var field = await _dbContext.Fields
                             .Where(f => f.Id == request.FieldId && f.OrganizationId == organizationId)
+                            .AsSplitQuery()
                             .Include(f => f.Gallery)
                                 .ThenInclude(g => g!.Images)
                             .Include(f => f.ThumbnailImage)
@@ -400,6 +404,7 @@ public class FieldsController : BaseController
     {
         var field = await _dbContext.Fields
                             .Where(f => f.Id == request.FieldId)
+                            .AsSplitQuery()
                             .Include(f => f.ThumbnailImage)
                             .Include(f => f.Location)
                             .FirstOrDefaultAsync();

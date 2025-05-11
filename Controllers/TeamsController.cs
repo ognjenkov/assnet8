@@ -39,6 +39,7 @@ public class TeamsController : BaseController
 
         var user = await _dbContext.Users
                                     .Where(u => u.Id == Guid.Parse(userId))
+                                    .AsSplitQuery()
                                     .Include(u => u.Membership)
                                     .Include(u => u.Organization)
                                     .FirstOrDefaultAsync();
@@ -109,6 +110,7 @@ public class TeamsController : BaseController
     public async Task<ActionResult<PaginatedResponseDto<GetTeamsResponseDto>>> GetTeams([FromQuery] GetTeamsRequestDto request)
     {
         var query = _dbContext.Teams
+                                        .AsSplitQuery()
                                         .Include(t => t.LogoImage)
                                         .Include(t => t.Memberships)
                                         .Include(t => t.LogoImage)
@@ -206,6 +208,7 @@ public class TeamsController : BaseController
     {
         var team = await _dbContext.Teams
                                 .Where(t => t.Id == request.TeamId)
+                                .AsSplitQuery()
                                 .Include(t => t.Galleries)
                                     .ThenInclude(g => g!.Images)
                                 .Include(t => t.Galleries)

@@ -41,6 +41,7 @@ public class InvitesController : BaseController
 
         var invites = await _dbContext.Invites
                             .Where(i => i.UserId == userGuid)
+                            .AsSplitQuery()
                             .Include(i => i.Team)
                                 .ThenInclude(t => t!.LogoImage)
                             .OrderByDescending(i => i.CreateDateTime)
@@ -294,6 +295,7 @@ public class InvitesController : BaseController
 
         var invites = await _dbContext.Invites
                             .Where(i => i.TeamId == teamGuid)
+                            .AsSplitQuery()
                             .Include(i => i.User)
                                 .ThenInclude(u => u!.ProfileImage)
                             .OrderByDescending(i => i.CreateDateTime)

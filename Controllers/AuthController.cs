@@ -38,6 +38,7 @@ public class AuthController : BaseController
     {
         var user = await _dbContext.Users
             .Where(u => u.Username == request.UsernameOrEmail || u.Email == request.UsernameOrEmail)
+            .AsSplitQuery()
             .Include(u => u.Membership)
                 .ThenInclude(m => m!.Roles)
             .Include(u => u.Organization)
@@ -139,6 +140,7 @@ public class AuthController : BaseController
         }
         var user = await _dbContext.Users
             .Where(u => u.RefreshTokenCookie == refreshTokenCookie)
+            .AsSplitQuery()
             .Include(u => u.Membership)
                 .ThenInclude(m => m!.Roles)
             .Include(u => u.Organization)
@@ -302,6 +304,7 @@ public class AuthController : BaseController
 
             var user = await _dbContext.Users
             .Where(u => u.Email == googleUser.email)
+            .AsSplitQuery()
             .Include(u => u.Membership)
                 .ThenInclude(m => m!.Roles)
             .Include(u => u.Organization)

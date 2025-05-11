@@ -34,6 +34,7 @@ public class GamesController : BaseController
     public async Task<ActionResult<IEnumerable<GetGamesResponseDto>>> GetGames([FromQuery] GetGamesRequestDto request)
     {
         var query = _dbContext.Games
+                                        .AsSplitQuery()
                                         .Include(g => g.Organization)
                                         .ThenInclude(o => o!.LogoImage)
                                         .Include(g => g.Field)
@@ -116,6 +117,7 @@ public class GamesController : BaseController
         //ako je logged in dobija i prijave, ako ne samo game
         var game = await _dbContext.Games
                                 .Where(g => g.Id == request.GameId)
+                                .AsSplitQuery()
                                 .Include(g => g.Organization)
                                 .ThenInclude(o => o!.LogoImage)
                                 .Include(g => g.Field)

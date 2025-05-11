@@ -101,6 +101,7 @@ public class OrganizationsController : BaseController
     {
         var organization = await _dbContext.Organizations
                             .Where(o => o.Id == request.OrganizationId)
+                            .AsSplitQuery()
                             .Include(o => o.LogoImage)
                             .Include(o => o.Fields)
                             .ThenInclude(f => f.ThumbnailImage)

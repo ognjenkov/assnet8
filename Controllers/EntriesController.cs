@@ -30,6 +30,7 @@ public class EntriesController : BaseController
     public async Task<ActionResult<IEnumerable<GetGameEntriesResponseDto>>> GetGameEntries([FromRoute] GetGameEntriesRequestDto request)
     {
         var entries = await _dbContext.Entries.Where(e => e.GameId == request.GameId)
+                                        .AsSplitQuery()
                                         .Include(e => e.User!)
                                             .ThenInclude(u => u.ProfileImage)
                                         .ToListAsync();
