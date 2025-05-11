@@ -160,7 +160,11 @@ public class GamesController : BaseController
                     Id = game.Field.Location.Id,
                     Region = game.Field.Location.Region
                 }
-            }
+            },
+            MaxTotal = game.MaxTotal,
+            MaxRent = game.MaxRent,
+            OutsourceEntries = game.OutsourceEntries,
+            OutsourceEntriesInstructions = game.OutsourceEntriesInstructions
         });
     }
 
@@ -189,6 +193,8 @@ public class GamesController : BaseController
 
         if (!organizationOwnsField) return NotFound("Field not found");// mozda neki drugi error?
 
+
+
         var game = new Game
         {
             Title = request.Title,
@@ -196,7 +202,11 @@ public class GamesController : BaseController
             Description = request.Description,
             FieldId = request.FieldId,
             OrganizationId = (Guid)organizationId,
-            Tags = tags
+            Tags = tags,
+            MaxTotal = request.MaxTotal,
+            MaxRent = request.MaxRent,
+            OutsourceEntries = request.OutsourceEntries,
+            OutsourceEntriesInstructions = request.OutsourceEntries ? request.OutsourceEntriesInstructions : null
         };
 
         await _dbContext.Games.AddAsync(game);

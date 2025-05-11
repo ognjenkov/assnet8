@@ -17,4 +17,8 @@ public class Game
     public List<Tag> Tags { get; set; } = [];
     public Organization? Organization { get; set; }
     public Field? Field { get; set; }
+    public int MaxTotal { get; set; } = 999;
+    public int MaxRent { get; set; } = 0;
+    public bool OutsourceEntries { get; set; } = false;
+    public string? OutsourceEntriesInstructions { get; set; } = null;
 }

@@ -61,16 +61,26 @@ public class EntriesController : BaseController
         if (userId == null) return Unauthorized();
         if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
-        var game = await _dbContext.Games.FirstOrDefaultAsync(g => g.Id == request.GameId);
+        var game = await _dbContext.Games
+            .Include(g => g.Entries)
+            .FirstOrDefaultAsync(g => g.Id == request.GameId);
 
         if (game == null) return NotFound("Game not found");
+
+        if (game.OutsourceEntries) return Conflict("Game is outsource");
+
+        int totalEntries = game.Entries.Aggregate(0, (acc, entry) => acc + (entry.OpNumber + entry.RentNumber));
+        if (totalEntries + (request.OpNumber + request.RentNumber) > game.MaxTotal) return Conflict("Game is full");
+
+        int rentEntries = game.Entries.Aggregate(0, (acc, entry) => acc + entry.RentNumber);
+        if (rentEntries + request.RentNumber > game.MaxRent) return Conflict("Game is full for rent");
 
         var entry = new Entry
         {
             OpNumber = request.OpNumber,
             RentNumber = request.RentNumber,
             Message = request.Message,
-            UserId = Guid.Parse(userId),
+            UserId = userGuid,
             GameId = request.GameId
         };
         await _dbContext.Entries.AddAsync(entry);

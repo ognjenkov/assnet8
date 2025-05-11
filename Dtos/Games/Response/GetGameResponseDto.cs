@@ -15,4 +15,8 @@ public class GetGameResponseDto
     public OrganizationSimpleDto? Organization { get; set; }
     public FieldSimpleDto? Field { get; set; }
     public List<Tag> Tags { get; set; } = [];
+    public int MaxTotal { get; set; }
+    public int MaxRent { get; set; }
+    public bool OutsourceEntries { get; set; }
+    public string? OutsourceEntriesInstructions { get; set; }
 }

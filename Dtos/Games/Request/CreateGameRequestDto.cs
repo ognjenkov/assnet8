@@ -14,6 +14,10 @@ public class CreateGameRequestDto
     public string? Description { get; set; }
     public required Guid FieldId { get; set; }
     public Guid[] TagIds { get; set; } = [];
+    public int MaxTotal { get; set; } = 999;
+    public int MaxRent { get; set; } = 0;
+    public bool OutsourceEntries { get; set; } = false;
+    public string? OutsourceEntriesInstructions { get; set; } = null;
 }
 public class CreateGameRequestDtoValidator : AbstractValidator<CreateGameRequestDto>
 {
@@ -45,6 +49,16 @@ public class CreateGameRequestDtoValidator : AbstractValidator<CreateGameRequest
             .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("TagIds is required")
             .MustAsync(AreTagIdsValid).WithMessage("TagIds are not valid.");
+
+        RuleFor(x => x.MaxTotal)
+            .Cascade(CascadeMode.Stop)
+            .GreaterThanOrEqualTo(0).WithMessage("Op number cannot be negative")
+            .LessThanOrEqualTo(999).WithMessage("Op number cannot be greater than 999");
+
+        RuleFor(x => x.MaxRent)
+            .Cascade(CascadeMode.Stop)
+            .GreaterThanOrEqualTo(0).WithMessage("Rent number cannot be negative")
+            .LessThanOrEqualTo(999).WithMessage("Rent number cannot be greater than 999");
     }
     private async Task<bool> IsValidFieldId(Guid fieldId, CancellationToken token)
     {
