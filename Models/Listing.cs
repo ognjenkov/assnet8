@@ -34,11 +34,11 @@ public class Listing
     public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
     public DateTime RefreshDateTime { get; set; } = DateTime.UtcNow;
     public required ListingType Type { get; set; }
-    public required ListingCondition Condition { get; set; }
+    public ListingCondition? Condition { get; set; }
     public required ListingStatus Status { get; set; } = ListingStatus.Active;
     public required string Title { get; set; }
     public required string Description { get; set; }
-    public required string Price { get; set; }
+    public string? Price { get; set; }
     public required string ContactInfo { get; set; }
     public Guid UserId { get; set; }
     public Guid? GalleryId { get; set; }

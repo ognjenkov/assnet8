@@ -10,11 +10,11 @@ public class GetListingsResponseDto
     public Guid Id { get; set; } = Guid.NewGuid();
     public DateTime RefreshDateTime { get; set; }
     public required ListingType Type { get; set; }
-    public required ListingCondition Condition { get; set; }
+    public ListingCondition? Condition { get; set; }
     public required ListingStatus Status { get; set; }
     public required string Title { get; set; }
     public required string Description { get; set; }
-    public required string Price { get; set; }
+    public string? Price { get; set; }
     public ImageSimpleDto? ThumbnailImage { get; set; }
     public List<Tag> Tags { get; set; } = [];
     public LocationSimpleDto? Location { get; set; }

@@ -10,13 +10,13 @@ namespace assnet8.Dtos.Listings.Request;
 public class CreateListingRequestDto
 {
     public ListingType Type { get; set; }
-    public ListingCondition Condition { get; set; }
+    public ListingCondition? Condition { get; set; }
     public required string Title { get; set; }
     public required string Description { get; set; }
-    public required string Price { get; set; }
+    public string? Price { get; set; }
     public required string ContactInfo { get; set; }
     public Guid LocationId { get; set; }
-    public Guid[] TagIds { get; set; } = [];
+    public Guid[]? TagIds { get; set; } = [];
     public required IFormFile ThumbnailImage { get; set; }
     public IFormFile[]? Images { get; set; }
 }
@@ -41,10 +41,6 @@ public class CreateListingRequestDtoValidator : AbstractValidator<CreateListingR
             .MinimumLength(3).WithMessage("Description must be at least 3 characters")
             .MaximumLength(600).WithMessage("Description must be at most 600 characters");
 
-        RuleFor(x => x.Price)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("Price is required");
-
         RuleFor(x => x.ContactInfo)
             .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("ContactInfo is required")
@@ -56,23 +52,41 @@ public class CreateListingRequestDtoValidator : AbstractValidator<CreateListingR
             .NotEmpty().WithMessage("LocationId is required")
             .MustAsync(ExistLocation).WithMessage("Location does not exist");
 
-        RuleFor(x => x.TagIds)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("TagIds is required")
-            .MustAsync(AreTagIdsValid).WithMessage("TagIds are not valid.");
-
         RuleFor(x => x.ThumbnailImage)
             .Cascade(CascadeMode.Stop)
             .Must(file => file.Length > 0).WithMessage("Image file cannot be empty")
             .Must(file => file.Length <= 5 * 1024 * 1024).WithMessage("Image must be less than 5MB")
             .Must(file => new[] { ".jpg", ".jpeg", ".png" }.Contains(Path.GetExtension(file.FileName).ToLower())).WithMessage("Only JPG and PNG images are allowed");
 
-        RuleFor(x => x.Images)
-            .Must(AreImagesValid)
-            .WithMessage("Images are not valid");
+        RuleFor(x => x.Type)
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty().WithMessage("Type is required");
+
+        When(x => x.Type == ListingType.Selling, () =>
+        {
+            RuleFor(x => x.Price)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty().WithMessage("Price is required");
+
+            RuleFor(x => x.TagIds)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty().WithMessage("TagIds is required")
+                .MustAsync(AreTagIdsValid).WithMessage("TagIds are not valid.");
+
+            RuleFor(x => x.Images)
+                .Must(AreImagesValid)
+                .WithMessage("Images are not valid");
+
+            RuleFor(x => x.Condition)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty().WithMessage("Condition is required");
+        });
+
     }
-    private async Task<bool> AreTagIdsValid(Guid[] tagIds, CancellationToken token)
+    private async Task<bool> AreTagIdsValid(Guid[]? tagIds, CancellationToken token)
     {
+        if (tagIds == null) return true;
+
         if (tagIds.Length == 0) return true;
 
         var tags = await _dbContext.Tags

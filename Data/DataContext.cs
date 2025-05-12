@@ -71,9 +71,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Listing>()
             .Property(l => l.Condition)
             .HasConversion(
-                v => v.ToString(), // Convert enum to string when saving to the database
-                v => (ListingCondition)Enum.Parse(typeof(ListingCondition), v) // Convert string back to enum when reading from the database
-            );
+                v => v.HasValue ? v.Value.ToString() : null,
+                v => !string.IsNullOrEmpty(v)
+                    ? (ListingCondition?)Enum.Parse(typeof(ListingCondition), v)
+                    : null
+            ); // ovaj enum moze da bude null, zanimljiv kod, to nisam imao do sada
 
         // Configure the ListingStatus enum to be stored as a string
         modelBuilder.Entity<Listing>()

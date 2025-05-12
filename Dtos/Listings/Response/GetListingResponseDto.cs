@@ -11,11 +11,11 @@ public class GetListingResponseDto
     public DateTime CreateDateTime { get; set; }
     public DateTime RefreshDateTime { get; set; }
     public required ListingType Type { get; set; }
-    public required ListingCondition Condition { get; set; }
+    public ListingCondition? Condition { get; set; }
     public required ListingStatus Status { get; set; }
     public required string Title { get; set; }
     public required string Description { get; set; }
-    public required string Price { get; set; }
+    public string? Price { get; set; }
     public required string ContactInfo { get; set; }
     public UserSimpleDto? User { get; set; }
     public ImageSimpleDto? ThumbnailImage { get; set; } // Navigation property to Image

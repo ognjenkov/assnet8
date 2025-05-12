@@ -49,7 +49,7 @@ public class ListingsController : BaseController
         if (request.Type != null) query = query.Where(l => l.Type == request.Type);
 
         if (request.Conditions != null && request.Conditions.Length > 0)
-            query = query.Where(l => request.Conditions.Contains(l.Condition));
+            query = query.Where(l => l.Condition.HasValue && request.Conditions.Contains(l.Condition.Value));
 
         // if(request.Search != null) query = query.Where(l => l.Title.Contains(request.Search));
 
@@ -168,29 +168,24 @@ public class ListingsController : BaseController
     { // TODO buying nisam uradio
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
-
-        if (userId != Guid.Parse(userId).ToString()) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
         var user = await _dbContext.Users
-                            .FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
+                            .FirstOrDefaultAsync(u => u.Id == userGuid);
 
-        if (user == null) return NotFound("User not found");
+        if (user == null) return Unauthorized("User not found");
 
-        List<Tag> tags = (List<Tag>?)HttpContext.Items["ValidatedTags"] ?? [];
 
         var listing = new Listing
         {
             Type = request.Type,
-            Condition = request.Condition,
             Status = ListingStatus.Active,
             Title = request.Title,
             Description = request.Description,
-            Price = request.Price,
             ContactInfo = request.ContactInfo,
             User = user,
             UserId = user.Id,
             LocationId = request.LocationId,
-            Tags = tags,
         };
         await _dbContext.Listings.AddAsync(listing);
         await _dbContext.SaveChangesAsync();
@@ -210,38 +205,51 @@ public class ListingsController : BaseController
             // throw;
         }
 
-        if (request.Images != null && request.Images.Length > 0)
+        if (request.Type == ListingType.Selling)
         {
-            var gallery = new Gallery
-            {
-                Title = request.Title,
-                CreateDateTime = DateTime.Now,
-                UserId = user.Id,
-                Listing = listing,
-            };
-            await _dbContext.Galleries.AddAsync(gallery);
+            List<Tag> tags = (List<Tag>?)HttpContext.Items["ValidatedTags"] ?? [];
+
+            listing.Condition = request.Condition;
+            listing.Price = request.Price;
+            listing.Tags = tags;
+
             await _dbContext.SaveChangesAsync();
 
-            // cudan malo redosled, nisam 
-            // prosledio galleryId za slike jer galerija nije jos sacuvana,
-            // dodacu slike u galeriju pa cu se naterati da ce se automacki povezati
-            foreach (var image in request.Images)
+            if (request.Images != null && request.Images.Length > 0)
             {
-                try
+                var gallery = new Gallery
                 {
-                    var img = await _imageService.UploadImage(user, image);
-                    await _dbContext.Images.AddAsync(img);
-                    gallery.Images.Add(img);
-                }
-                catch (System.Exception)
+                    Title = request.Title,
+                    CreateDateTime = DateTime.Now,
+                    UserId = user.Id,
+                    Listing = listing,
+                };
+                await _dbContext.Galleries.AddAsync(gallery);
+                await _dbContext.SaveChangesAsync();
+
+                // cudan malo redosled, nisam 
+                // prosledio galleryId za slike jer galerija nije jos sacuvana,
+                // dodacu slike u galeriju pa cu se naterati da ce se automacki povezati
+                foreach (var image in request.Images)
                 {
-                    System.Console.WriteLine("Failed to upload profile image");
-                    // throw;
+                    try
+                    {
+                        var img = await _imageService.UploadImage(user, image);
+                        await _dbContext.Images.AddAsync(img);
+                        gallery.Images.Add(img);
+                    }
+                    catch (System.Exception)
+                    {
+                        System.Console.WriteLine("Failed to upload profile image");
+                        // throw;
+                    }
                 }
+
+                await _dbContext.SaveChangesAsync();
             }
-
-            await _dbContext.SaveChangesAsync();
         }
+
+
 
         try
         {
@@ -277,7 +285,7 @@ public class ListingsController : BaseController
                                     .ThenInclude(g => g!.Images)
                                 .FirstOrDefaultAsync();
 
-        if (listing == null) return NotFound("Entry not found"); // TODO nije bas not found nego nije taj id za tog korisnika mogce je da neki levi korisnik brrise i dobice not found ali treba unathorized ili nesto tako...
+        if (listing == null) return NotFound("listing not found"); // TODO nije bas not found nego nije taj id za tog korisnika mogce je da neki levi korisnik brrise i dobice not found ali treba unathorized ili nesto tako...
 
         try
         {
