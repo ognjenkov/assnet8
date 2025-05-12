@@ -45,6 +45,8 @@ public class AccountService : IAccountService
                                     .ThenInclude(u => u.ProfileImage)
                                 .Include(t => t.LogoImage)
                                 .Include(t => t.Memberships)
+                                    .ThenInclude(m => m.Roles!)
+                                .Include(t => t.Memberships)
                                     .ThenInclude(m => m.User!)
                                         .ThenInclude(u => u.ProfileImage)
                                 .Include(t => t.Location)
