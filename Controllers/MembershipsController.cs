@@ -89,18 +89,21 @@ public class MembershipsController : BaseController
         //TODO sta ako ocovek ima rolove vece od tebe i ti njemu menjas, ne bi bilo fer, sta ako je covek pravio servise i ti mu uklanjas to to ne bi bilo fer
 
         var membership = await _dbContext.Memberships
-                            .Where(m => m.Id == request.UserId && m.TeamId == teamGuid)
+                            .Where(m => m.UserId == request.UserId && m.TeamId == teamGuid)
                             .Include(m => m.Roles)
                             .FirstOrDefaultAsync();
 
         if (membership == null) return NotFound("Membership not found");
 
         if (membership.Roles.Any(r => r.Name == Roles.Creator) && !roles.Any(r => r.Name == Roles.Creator)) return BadRequest("Creator role can't be removed.");
+        if (membership.Roles.Any(r => r.Name == Roles.OrganizationOwner) && !roles.Any(r => r.Name == Roles.OrganizationOwner)) return BadRequest("OrganizationOwner role can't be removed.");
 
         membership.Roles.Clear();
         membership.Roles.AddRange(roles);
 
         await _dbContext.SaveChangesAsync();
+
+        await _nextJsRevalidationService.RevalidateTagAsync($"membership-{membership.Id}-simple");
 
         return NoContent();
     }
@@ -120,7 +123,7 @@ public class MembershipsController : BaseController
         if (userGuid == request.UserId) return BadRequest("Can't remove yourself, leave team instead.");
 
         var membership = await _dbContext.Memberships
-                            .Where(m => m.Id == request.UserId && m.TeamId == teamGuid)
+                            .Where(m => m.UserId == request.UserId && m.TeamId == teamGuid)
                             .Include(m => m.Roles)
                             .FirstOrDefaultAsync();
 
@@ -156,7 +159,7 @@ public class MembershipsController : BaseController
         {
             Id = m.Id,
             CreateDateTime = m.CreateDateTime,
-            Roles = [],
+            Roles = m.Roles,
             User = new UserSimpleDto
             {
                 Id = m.UserId,
