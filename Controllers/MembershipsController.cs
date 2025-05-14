@@ -54,6 +54,20 @@ public class MembershipsController : BaseController
         //TODO sta ako izadje neko sa servisima sta onda, ako se obrise tim/organizacija moraju i svi propratni servisi, ali ne i gejmovi? ili da gejmovi?
         _dbContext.Memberships.Remove(membership);
         await _dbContext.SaveChangesAsync();
+        //TODO kako revalidate token njegov, narednih 10 min ima pristup timu...???
+        try
+        {
+            await Task.WhenAll(
+                _nextJsRevalidationService.RevalidatePathAsync($"/teams/{teamGuid}"),
+                _nextJsRevalidationService.RevalidateTagAsync($"team-{teamGuid}"),
+                _nextJsRevalidationService.RevalidateTagAsync($"membership-{membership.Id}"),
+                _nextJsRevalidationService.RevalidateTagAsync($"membership-{membership.Id}-simple")
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
 
         return NoContent();
     }
@@ -110,7 +124,7 @@ public class MembershipsController : BaseController
 
     [VerifyRoles([Roles.Creator, Roles.TeamLeader])]
     [HttpDelete("user/kick")]
-    public async Task<ActionResult> RemoveUserFromTeam([FromQuery] RemoveUserFromTeamRequestDto request)
+    public async Task<ActionResult> RemoveUserFromTeam([FromBody] RemoveUserFromTeamRequestDto request)
     {
         var teamId = User.FindFirst("TeamId")?.Value;
         if (teamId == null) return Unauthorized();
@@ -135,6 +149,21 @@ public class MembershipsController : BaseController
         // ili mozda da se prebace objave na Creatora to nije losa ideja :D
         _dbContext.Memberships.Remove(membership);
         await _dbContext.SaveChangesAsync();
+        // TODO kako da mu refreshujem token!
+        try
+        {
+            await Task.WhenAll(
+                _nextJsRevalidationService.RevalidatePathAsync($"/teams/{teamGuid}"),
+                _nextJsRevalidationService.RevalidateTagAsync($"team-{teamGuid}"),
+                _nextJsRevalidationService.RevalidateTagAsync($"membership-{membership.Id}"),
+                _nextJsRevalidationService.RevalidateTagAsync($"membership-{membership.Id}-simple")
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
 
         return NoContent();
     }

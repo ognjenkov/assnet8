@@ -454,8 +454,45 @@ public class InvitesController : BaseController
                     .Where(i => i.UserId == user.Id && i.Id != oldInvite.Id && i.Status != InviteStatus.Fullfilled)
                     .ToListAsync();
 
+                foreach (var i in otherInvites)
+                {
+                    i.Accepted = false;
+                    i.ResponseDateTime = DateTime.UtcNow;
+                    i.Status = InviteStatus.Fullfilled;
+                }
+                var memberRole = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == Roles.Member);
+                var newMembership = new Membership
+                {
+                    UserId = user.Id,
+                    TeamId = teamGuid,
+                    Roles = new List<Role>
+                    {
+                        memberRole!
+                    }
+                };
 
+                await _dbContext.Memberships.AddAsync(newMembership);
+                await _dbContext.SaveChangesAsync();
 
+                await _invitesUserHub.Clients.Groups(oldInvite.UserId.ToString()).SendAsync("Refetch");
+                await _invitesUserHub.Clients.Groups(oldInvite.UserId.ToString()).SendAsync("RefreshToken");
+                await _invitesTeamHub.Clients.Groups(oldInvite.TeamId.ToString()).SendAsync("Refetch");
+
+                try
+                {
+                    await Task.WhenAll(
+                        _nextJsRevalidationService.RevalidatePathAsync($"/teams/{oldInvite.TeamId}"),
+                        _nextJsRevalidationService.RevalidateTagAsync($"team-{oldInvite.TeamId}"),
+                        _nextJsRevalidationService.RevalidateTagAsync($"membership-{newMembership.Id}"),
+                        _nextJsRevalidationService.RevalidateTagAsync($"membership-{newMembership.Id}-simple")
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+
+                return NoContent();
             }
         }
 
