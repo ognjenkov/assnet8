@@ -15,4 +15,5 @@ public class GetInvitesResponseDto
     public required DateTime CreateDateTime { get; set; }
     public DateTime? ResponseDateTime { get; set; } = null;
     public Guid CreatedById { get; set; }
+    public required bool ShouldRefresh { get; set; }
 }

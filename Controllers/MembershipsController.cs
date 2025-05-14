@@ -55,6 +55,10 @@ public class MembershipsController : BaseController
         _dbContext.Memberships.Remove(membership);
         await _dbContext.SaveChangesAsync();
         //TODO kako revalidate token njegov, narednih 10 min ima pristup timu...???
+
+        (await _dbContext.Invites.Where(i => i.UserId == userGuid && i.ShouldRefresh == true).ToListAsync()).ForEach(i => i.ShouldRefresh = false);
+        await _dbContext.SaveChangesAsync();
+
         try
         {
             await Task.WhenAll(
@@ -150,6 +154,10 @@ public class MembershipsController : BaseController
         _dbContext.Memberships.Remove(membership);
         await _dbContext.SaveChangesAsync();
         // TODO kako da mu refreshujem token!
+
+        (await _dbContext.Invites.Where(i => i.UserId == userGuid && i.ShouldRefresh == true).ToListAsync()).ForEach(i => i.ShouldRefresh = false);
+        await _dbContext.SaveChangesAsync();
+
         try
         {
             await Task.WhenAll(

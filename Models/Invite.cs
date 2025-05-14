@@ -19,6 +19,7 @@ public class Invite
     public required Guid UserId { get; set; }
     public required Guid TeamId { get; set; }
     public bool Accepted { get; set; } = false;
+    public bool ShouldRefresh { get; set; } = true;
     public required InviteStatus Status { get; set; }
     public required Guid CreatedById { get; set; }
     public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
