@@ -184,21 +184,95 @@ public class TeamsController : BaseController
     [Authorize]
     [VerifyRoles(Roles.Creator)]
     [HttpDelete]
-    public IActionResult DeleteTeam()
+    public async Task<IActionResult> DeleteTeam()
     {
-        // try
-        // {
-        //     await Task.WhenAll(
-        //             _nextJsRevalidationService.RevalidatePathAsync($"/teams/{team.Id}"),
-        //             _nextJsRevalidationService.RevalidateTagAsync("teams"),
-        //             _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}-simple"),
-        //             _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}") 
-        //         );
-        // }
-        // catch (Exception ex)
-        // {
-        //     Console.WriteLine(ex);
-        // }
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null || !Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var team = await _dbContext.Teams
+            .AsSplitQuery()
+            .Include(t => t.Galleries)
+                .ThenInclude(g => g.Images)
+            .Include(t => t.Memberships)
+            .Include(t => t.Invites)
+            .Include(t => t.LogoImage)
+            .Include(t => t.Organization)
+            .FirstOrDefaultAsync(t => t.CreatorId == userGuid);
+        if (team == null) return NotFound("Team not found");
+
+        if (team.Organization != null)
+        {
+            return BadRequest("You cannot disband a team that owns an organization, you must delete the organization first.");
+        }
+
+        _dbContext.Memberships.RemoveRange(team.Memberships);
+        _dbContext.RemoveRange(team.Invites);
+        await _dbContext.SaveChangesAsync();
+
+        try
+        {
+            _dbContext.Teams.Remove(team);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            return BadRequest("Team cannot be deleted due to existing references.");
+        }
+
+        if (team.LogoImage != null)
+        {
+            await _imageService.DeleteImage(team.LogoImage);
+        }
+        foreach (var gallery in team.Galleries)
+        {
+            foreach (var image in gallery.Images)
+            {
+                await _imageService.DeleteImage(image);
+            }
+
+            _dbContext.Galleries.Remove(gallery);
+
+            try
+            {
+                await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidateTagAsync($"gallery-{gallery.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"gallery-{gallery.Id}-simple")
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+        await _dbContext.SaveChangesAsync();
+
+        foreach (var membership in team.Memberships)
+        {
+            try // TODO za svaki membership
+            {
+                await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidateTagAsync($"membership-{membership.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"membership-{membership.Id}-simple")
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/teams/{team.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("teams"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"team-{team.Id}")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
 
         return Ok("delete team");
     }

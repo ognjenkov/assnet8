@@ -52,24 +52,53 @@ public class OrganizationsController : BaseController
         return Ok("Update organization");
     }
 
-    [VerifyRoles(Roles.Creator, Roles.OrganizationOwner, Roles.Organizer, Roles.ServiceProvider)]
+    [VerifyRoles(Roles.Creator, Roles.OrganizationOwner)]
     [HttpDelete]
-    public IActionResult DeleteOrganization()
+    public async Task<IActionResult> DeleteOrganization()
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null || !Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+        var teamId = User.FindFirst("TeamId")?.Value;
+        Guid.TryParse(teamId, out var teamGuid);
 
-        // try
-        // {
-        //     await Task.WhenAll(
-        //             _nextJsRevalidationService.RevalidatePathAsync($"/organizations/{organization.Id}"),
-        //             _nextJsRevalidationService.RevalidateTagAsync("organizations"),
-        //             _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}-simple"),
-        //             _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}")
-        //         );
-        // }
-        // catch (Exception ex)
-        // {
-        //     Console.WriteLine(ex);
-        // }
+        var organization = await _dbContext.Organizations
+                                // .AsSplitQuery()
+                                // .Include(o => o.Fields)
+                                // .Include(o => o.Games)
+                                .Include(o => o.LogoImage)
+                                // .Include(o => o.Services)
+                                .FirstOrDefaultAsync(o => o.UserId == userGuid || o.TeamId == teamGuid);
+        if (organization == null) return NotFound("Organization not found");
+
+        try
+        {
+            _dbContext.Organizations.Remove(organization);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            return BadRequest("Field cannot be deleted due to existing references. Try deleting games first.");
+        }
+
+        if (organization.LogoImage != null)
+        {
+            await _imageService.DeleteImage(organization.LogoImage);
+        }
+        await _dbContext.SaveChangesAsync();
+
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/organizations/{organization.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("organizations"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"organization-{organization.Id}")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
         return Ok("Delete organization");
     }
 
