@@ -15,9 +15,9 @@ public class EntryConfiguration : IEntityTypeConfiguration<Entry>
         .WithMany(u => u.Entries)
         .HasForeignKey(e => e.UserId)
         .OnDelete(DeleteBehavior.Cascade);
-        builder.HasOne(e => e.User)
+        builder.HasOne(e => e.Game)
         .WithMany(u => u.Entries)
-        .HasForeignKey(e => e.UserId)
+        .HasForeignKey(e => e.GameId)
         .OnDelete(DeleteBehavior.Cascade);
     }
 }

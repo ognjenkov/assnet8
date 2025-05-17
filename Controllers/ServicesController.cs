@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+
 [Route("services")]
 public class ServicesController : BaseController
 {
@@ -68,7 +69,7 @@ public class ServicesController : BaseController
                 Username = s.CreatedByUser.Username,
                 ProfileImage = s.CreatedByUser.ProfileImage == null ? null : new ImageSimpleDto
                 {
-                    Url = s.CreatedByUser.ProfileImage.Id.ToString()
+                    Url = Utils.Utils.GenerateImageFrontendLink(s.CreatedByUser.ProfileImage.Id)
                 }
             },
             ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+
 [Authorize]
 [Route("account")]
 public class AccountController : BaseController
@@ -128,7 +129,12 @@ public class AccountController : BaseController
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(f.ThumbnailImage.Id)
                 },
-                GoogleMapsLink = f.GoogleMapsLink
+                GoogleMapsLink = f.GoogleMapsLink,
+                Location = f.Location == null ? null : new LocationSimpleDto
+                {
+                    Id = f.Location.Id,
+                    Region = f.Location.Region
+                }
             }).ToList() ?? [],
             Games = organization.Games?.Select(g => new GameSimpleDto
             {

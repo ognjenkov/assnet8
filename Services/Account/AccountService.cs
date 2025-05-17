@@ -28,6 +28,8 @@ public class AccountService : IAccountService
                                     .ThenInclude(t => t.LogoImage)
                                 .Include(o => o.Fields)
                                 .ThenInclude(f => f.ThumbnailImage)
+                                .Include(o => o.Fields)
+                                .ThenInclude(f => f.Location)
                                 .Include(o => o.Games)
                                 .Include(o => o.Services)
                                 .ThenInclude(s => s.ThumbnailImage)

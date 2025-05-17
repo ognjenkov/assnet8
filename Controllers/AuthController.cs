@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+
 [Route("auth")]
 public class AuthController : BaseController
 {
@@ -81,7 +82,7 @@ public class AuthController : BaseController
             MaxAge = TimeSpan.FromDays(30)
         };
 
-        Response.Cookies.Append("jwt", refreshTokenCookie, cookieOptions);
+        Response.Cookies.Append("jwt", user.RefreshTokenCookie, cookieOptions);
 
         var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
 
@@ -92,7 +93,7 @@ public class AuthController : BaseController
         {
             Id = user.Id,
             AccessToken = accessToken,
-            RefreshTokenApp = refreshTokenApp,
+            RefreshTokenApp = user.RefreshTokenApp,
             Username = user.Username,
             ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
             {
@@ -192,7 +193,7 @@ public class AuthController : BaseController
             Secure = true,
             MaxAge = decodedRefreshToken.Expiration - DateTime.UtcNow
         };
-        Response.Cookies.Append("jwt", newRefreshTokenCookie, cookieOptions);
+        Response.Cookies.Append("jwt", user.RefreshTokenCookie, cookieOptions);
 
         var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
 
@@ -202,7 +203,7 @@ public class AuthController : BaseController
         {
             Id = user.Id,
             AccessToken = newAccessToken,
-            RefreshTokenApp = newRefreshTokenApp,
+            RefreshTokenApp = user.RefreshTokenApp,
             Username = user.Username,
             ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
             {
@@ -348,7 +349,7 @@ public class AuthController : BaseController
                 MaxAge = TimeSpan.FromDays(30)
             };
 
-            Response.Cookies.Append("jwt", refreshTokenCookie, cookieOptions);
+            Response.Cookies.Append("jwt", user.RefreshTokenCookie, cookieOptions);
 
             var roles = user.Membership?.Roles.ToList() ?? new List<Role>();
 
@@ -358,7 +359,7 @@ public class AuthController : BaseController
             {
                 Id = user.Id,
                 AccessToken = accessToken,
-                RefreshTokenApp = refreshTokenApp,
+                RefreshTokenApp = user.RefreshTokenApp,
                 Username = user.Username,
                 ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
                 {

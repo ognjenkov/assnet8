@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+
 [Authorize]
 [Route("organizations")]
 public class OrganizationsController : BaseController
@@ -62,13 +63,101 @@ public class OrganizationsController : BaseController
         Guid.TryParse(teamId, out var teamGuid);
 
         var organization = await _dbContext.Organizations
-                                // .AsSplitQuery()
-                                // .Include(o => o.Fields)
-                                // .Include(o => o.Games)
+                                .AsSplitQuery()
+                                .Include(o => o.Fields)
+                                    .ThenInclude(f => f.ThumbnailImage)
+                                .Include(o => o.Fields)
+                                    .ThenInclude(f => f.Gallery)
+                                        .ThenInclude(g => g!.Images)
+                                .Include(o => o.Games)
                                 .Include(o => o.LogoImage)
-                                // .Include(o => o.Services)
+                                .Include(o => o.Services)
+                                    .ThenInclude(s => s.ThumbnailImage)
+                                .Include(o => o.Services)
+                                    .ThenInclude(s => s.Gallery)
+                                        .ThenInclude(g => g!.Images)
                                 .FirstOrDefaultAsync(o => o.UserId == userGuid || o.TeamId == teamGuid);
         if (organization == null) return NotFound("Organization not found");
+
+        _dbContext.Games.RemoveRange(organization.Games);
+        try
+        {
+            await _nextJsRevalidationService.RevalidateTagAsync("games"); //TODO mozda i za pojedinacan game, ali ne mora vrv, osim ako ima neki field report koji referencira game
+        }
+        catch (System.Exception)
+        {
+            System.Console.WriteLine("Failed to revalidate");
+        }
+
+        _dbContext.Fields.RemoveRange(organization.Fields);
+        await _dbContext.SaveChangesAsync();
+        foreach (var field in organization.Fields)
+        {
+            if (field.ThumbnailImage != null)
+            {
+                await _imageService.DeleteImage(field.ThumbnailImage);
+            }
+
+            if (field.Gallery != null)
+            {
+                foreach (var image in field.Gallery.Images)
+                {
+                    await _imageService.DeleteImage(image);
+                }
+
+                _dbContext.Galleries.Remove(field.Gallery);
+            }
+            try
+            {
+                await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/fields/{field.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"field-{field.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"field-{field.Id}")
+                );
+            }
+            catch (System.Exception)
+            {
+                System.Console.WriteLine("Failed to revalidate");
+            }
+        }
+        await _dbContext.SaveChangesAsync();
+        await _nextJsRevalidationService.RevalidateTagAsync("fields");
+
+        _dbContext.Services.RemoveRange(organization.Services);
+        await _dbContext.SaveChangesAsync();
+        foreach (var service in organization.Services)
+        {
+            if (service.ThumbnailImage != null)
+            {
+                await _imageService.DeleteImage(service.ThumbnailImage);
+            }
+
+            if (service.Gallery != null)
+            {
+                foreach (var image in service.Gallery.Images)
+                {
+                    await _imageService.DeleteImage(image);
+                }
+
+                _dbContext.Galleries.Remove(service.Gallery);
+            }
+            try
+            {
+                await Task.WhenAll(
+                        _nextJsRevalidationService.RevalidatePathAsync($"/services/{service.Id}"),
+                        _nextJsRevalidationService.RevalidateTagAsync($"service-{service.Id}-simple"),
+                        _nextJsRevalidationService.RevalidateTagAsync($"service-{service.Id}")
+                    );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+        await _dbContext.SaveChangesAsync();
+        await _nextJsRevalidationService.RevalidateTagAsync("services");
+
+
 
         try
         {

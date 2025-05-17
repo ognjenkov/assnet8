@@ -11,6 +11,7 @@ public class CreateTeamRequestDto
 {
     public required string Name { get; set; }
     public IFormFile? TeamImage { get; set; }
+    public Guid LocationId { get; set; }
 }
 public class CreateTeamRequestDtoValidator : AbstractValidator<CreateTeamRequestDto>
 {
@@ -32,9 +33,19 @@ public class CreateTeamRequestDtoValidator : AbstractValidator<CreateTeamRequest
             .Must(file => file == null || file.Length <= 5 * 1024 * 1024).WithMessage("Image must be less than 5MB")
             .Must(file => file == null || new[] { ".jpg", ".jpeg", ".png" }.Contains(Path.GetExtension(file.FileName).ToLower())).WithMessage("Only JPG and PNG images are allowed");
 
+        RuleFor(x => x.LocationId)
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty().WithMessage("LocationId is required")
+            .MustAsync(ExistLocation).WithMessage("Location does not exist");
+
     }
     private async Task<bool> IsUniqueName(string name, CancellationToken token)
     {
         return !await _dbContext.Teams.AnyAsync(t => t.Name.ToLower() == name.ToLower(), cancellationToken: token);
     }
+    private async Task<bool> ExistLocation(Guid locationId, CancellationToken token)
+    {
+        return await _dbContext.Locations.AnyAsync(l => l.Id == locationId, cancellationToken: token);
+    }
+
 }

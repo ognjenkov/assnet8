@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+
 [Route("games")]
 public class GamesController : BaseController
 {
@@ -250,13 +251,6 @@ public class GamesController : BaseController
 
         if (game == null) return NotFound("Game not found");
 
-
-        var entries = await _dbContext.Entries
-                            .Where(e => e.GameId == request.GameId)
-                            .ToListAsync();
-
-
-        _dbContext.Entries.RemoveRange(entries);
         _dbContext.Games.Remove(game);
         await _dbContext.SaveChangesAsync();
 

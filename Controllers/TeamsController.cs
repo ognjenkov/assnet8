@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
+
 [Route("teams")]
 public class TeamsController : BaseController
 {
@@ -56,6 +57,7 @@ public class TeamsController : BaseController
         {
             Name = request.Name,
             CreatorId = user.Id,
+            LocationId = request.LocationId,
         };
         await _dbContext.Teams.AddAsync(team);
         await _dbContext.SaveChangesAsync();
