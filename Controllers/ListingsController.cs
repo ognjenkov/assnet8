@@ -362,9 +362,13 @@ public class ListingsController : BaseController
     [HttpGet("owned")]
     public async Task<ActionResult<IEnumerable<GetListingsResponseDto>>> GetOwnedListings([FromQuery] GetListingsRequestDto request)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
         var query = _dbContext.Listings
                                             .AsSplitQuery()
-                                            .Where(l => l.Status != ListingStatus.Archived)
+                                            .Where(l => l.Status != ListingStatus.Archived && l.UserId == userGuid)
                                             .Include(l => l.ThumbnailImage)
                                             .Include(l => l.Tags)
                                             .Include(l => l.Location)

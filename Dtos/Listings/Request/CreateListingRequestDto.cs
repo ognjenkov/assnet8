@@ -59,8 +59,8 @@ public class CreateListingRequestDtoValidator : AbstractValidator<CreateListingR
             .Must(file => new[] { ".jpg", ".jpeg", ".png" }.Contains(Path.GetExtension(file.FileName).ToLower())).WithMessage("Only JPG and PNG images are allowed");
 
         RuleFor(x => x.Type)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty().WithMessage("Type is required");
+            .Must(type => Enum.IsDefined(typeof(ListingType), type))
+            .WithMessage("Type is required and must be valid.");
 
         When(x => x.Type == ListingType.Selling, () =>
         {
@@ -79,7 +79,9 @@ public class CreateListingRequestDtoValidator : AbstractValidator<CreateListingR
 
             RuleFor(x => x.Condition)
                 .Cascade(CascadeMode.Stop)
-                .NotEmpty().WithMessage("Condition is required");
+                .NotEmpty().WithMessage("Condition is required")
+                .Must(c => Enum.IsDefined(typeof(ListingCondition), c!))
+                .WithMessage("Condition is required");
         });
 
     }
