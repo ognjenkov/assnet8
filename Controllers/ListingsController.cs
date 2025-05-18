@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace assnet8.Controllers;
+
 [Route("listings")]
 public class ListingsController : BaseController
 {
@@ -34,6 +35,7 @@ public class ListingsController : BaseController
     {
         var query = _dbContext.Listings
                                             .AsSplitQuery()
+                                            .Where(l => l.Status != ListingStatus.Archived)
                                             .Include(l => l.ThumbnailImage)
                                             .Include(l => l.Tags)
                                             .Include(l => l.Location)
@@ -96,6 +98,7 @@ public class ListingsController : BaseController
     {
         var ids = await _dbContext.Listings
         .AsNoTracking()
+        .Where(l => l.Status != ListingStatus.Archived)
         .Select(p => p.Id)
         .ToListAsync();
 
@@ -106,7 +109,7 @@ public class ListingsController : BaseController
     public async Task<ActionResult<GetListingResponseDto>> GetListing([FromRoute] GetListingRequestDto request)
     {
         var listing = await _dbContext.Listings
-                                    .Where(l => l.Id == request.ListingId)
+                                    .Where(l => l.Id == request.ListingId && l.Status != ListingStatus.Archived)
                                     .AsSplitQuery()
                                     .Include(l => l.ThumbnailImage)
                                     .Include(l => l.Tags)
@@ -269,69 +272,69 @@ public class ListingsController : BaseController
         return StatusCode(201, listing.Id);
     }
 
-    [Authorize]
-    [HttpDelete("{ListingId}")]
-    public async Task<IActionResult> DeleteListing([FromRoute] DeleteListingRequestDto request)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null) return Unauthorized();
-        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+    // [Authorize]
+    // [HttpDelete("{ListingId}")]
+    // public async Task<IActionResult> DeleteListing([FromRoute] DeleteListingRequestDto request)
+    // {
+    //     var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    //     if (userId == null) return Unauthorized();
+    //     if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
-        var listing = await _dbContext.Listings
-                                .Where(l => l.Id == request.ListingId && l.UserId == userGuid)
-                                .AsSplitQuery()
-                                .Include(l => l.ThumbnailImage)
-                                .Include(l => l.Gallery)
-                                    .ThenInclude(g => g!.Images)
-                                .FirstOrDefaultAsync();
+    //     var listing = await _dbContext.Listings
+    //                             .Where(l => l.Id == request.ListingId && l.UserId == userGuid)
+    //                             .AsSplitQuery()
+    //                             .Include(l => l.ThumbnailImage)
+    //                             .Include(l => l.Gallery)
+    //                                 .ThenInclude(g => g!.Images)
+    //                             .FirstOrDefaultAsync();
 
-        if (listing == null) return NotFound("listing not found"); // TODO nije bas not found nego nije taj id za tog korisnika mogce je da neki levi korisnik brrise i dobice not found ali treba unathorized ili nesto tako...
+    //     if (listing == null) return NotFound("listing not found"); // TODO nije bas not found nego nije taj id za tog korisnika mogce je da neki levi korisnik brrise i dobice not found ali treba unathorized ili nesto tako...
 
-        try
-        {
-            _dbContext.Listings.Remove(listing);
-            await _dbContext.SaveChangesAsync();
-        }
-        catch (DbUpdateException)
-        {
-            return BadRequest("Listing cannot be deleted due to existing references.");
-        }
-
-
-        if (listing.ThumbnailImage != null)
-        {
-            await _imageService.DeleteImage(listing.ThumbnailImage);
-        }
+    //     try
+    //     {
+    //         _dbContext.Listings.Remove(listing);
+    //         await _dbContext.SaveChangesAsync();
+    //     }
+    //     catch (DbUpdateException)
+    //     {
+    //         return BadRequest("Listing cannot be deleted due to existing references.");
+    //     }
 
 
-        if (listing.Gallery != null)
-        {
-            var images = listing.Gallery.Images.ToList();
-            foreach (var image in images)
-            {
-                await _imageService.DeleteImage(image);
-            }
-            _dbContext.Galleries.Remove(listing.Gallery);
-        }
+    //     if (listing.ThumbnailImage != null)
+    //     {
+    //         await _imageService.DeleteImage(listing.ThumbnailImage);
+    //     }
 
-        await _dbContext.SaveChangesAsync();
 
-        try
-        {
-            await Task.WhenAll(
-                    _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
-                    _nextJsRevalidationService.RevalidateTagAsync("listings"),
-                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
-                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
-                );
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-        }
+    //     if (listing.Gallery != null)
+    //     {
+    //         var images = listing.Gallery.Images.ToList();
+    //         foreach (var image in images)
+    //         {
+    //             await _imageService.DeleteImage(image);
+    //         }
+    //         _dbContext.Galleries.Remove(listing.Gallery);
+    //     }
 
-        return Ok();
-    }
+    //     await _dbContext.SaveChangesAsync();
+
+    //     try
+    //     {
+    //         await Task.WhenAll(
+    //                 _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
+    //                 _nextJsRevalidationService.RevalidateTagAsync("listings"),
+    //                 _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
+    //                 _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
+    //             );
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex);
+    //     }
+
+    //     return Ok();
+    // }
 
     [Authorize]
     [HttpPatch]
@@ -354,4 +357,141 @@ public class ListingsController : BaseController
         return Ok("Update listing");
     }
 
+
+    [Authorize]
+    [HttpGet("owned")]
+    public async Task<ActionResult<IEnumerable<GetListingsResponseDto>>> GetOwnedListings([FromQuery] GetListingsRequestDto request)
+    {
+        var query = _dbContext.Listings
+                                            .AsSplitQuery()
+                                            .Where(l => l.Status != ListingStatus.Archived)
+                                            .Include(l => l.ThumbnailImage)
+                                            .Include(l => l.Tags)
+                                            .Include(l => l.Location)
+                                            .OrderByDescending(l => l.CreateDateTime)
+                                            .AsQueryable();
+
+        if (request.LocationIds != null && request.LocationIds.Length > 0)
+            query = query.Where(l => l.LocationId.HasValue && request.LocationIds.Contains(l.LocationId.Value));
+
+        if (request.TagIds != null && request.TagIds.Length > 0)
+            query = query.Where(l => l.Tags!.Any(t => request.TagIds.Contains(t.Id)));
+
+        if (request.Type != null) query = query.Where(l => l.Type == request.Type);
+
+        if (request.Conditions != null && request.Conditions.Length > 0)
+            query = query.Where(l => l.Condition.HasValue && request.Conditions.Contains(l.Condition.Value));
+
+        // if(request.Search != null) query = query.Where(l => l.Title.Contains(request.Search));
+
+        var totalCount = await query.CountAsync();
+
+        var listings = await query
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync();
+
+        var listingDtos = listings.Select(l => new GetOwnedListingsResponseDto
+        {
+            Id = l.Id,
+            RefreshDateTime = l.RefreshDateTime,
+            CreateDateTime = l.CreateDateTime,
+            Type = l.Type,
+            Condition = l.Condition,
+            Status = l.Status,
+            Title = l.Title,
+            Description = l.Description,
+            Price = l.Price,
+            ThumbnailImage = l.ThumbnailImage == null ? null : new ImageSimpleDto
+            {
+                Url = Utils.Utils.GenerateImageFrontendLink(l.ThumbnailImage.Id)
+            },
+            Tags = l.Tags,
+            Location = l.Location == null ? null : new LocationSimpleDto
+            {
+                Id = l.Location.Id,
+                Region = l.Location.Region
+            }
+        });
+
+        return Ok(new PaginatedResponseDto<GetListingsResponseDto>
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            Items = listingDtos
+        });
+    }
+    [Authorize]
+    [HttpPatch("owned/{ListingId}")]
+    public async Task<IActionResult> RefreshListing([FromRoute] DeleteListingRequestDto request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var listing = await _dbContext.Listings.FirstOrDefaultAsync(l => l.Id == request.ListingId && l.UserId == userGuid && l.Status != ListingStatus.Archived);
+
+        if (listing == null) return NotFound("Listing not found");
+
+        listing.RefreshDateTime = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync();
+
+        return Ok();
+    }
+    [Authorize]
+    [HttpDelete("owned/{ListingId}")]
+    public async Task<IActionResult> ArchiveListing([FromRoute] DeleteListingRequestDto request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var listing = await _dbContext.Listings.FirstOrDefaultAsync(l => l.Id == request.ListingId && l.UserId == userGuid && l.Status != ListingStatus.Archived);
+
+        if (listing == null) return NotFound("Listing not found");
+
+        listing.Status = ListingStatus.Archived;
+        await _dbContext.SaveChangesAsync();
+
+        return Ok();
+    }
+    [Authorize]
+    [HttpPatch("owned/{ListingId}/activate")]
+    public async Task<IActionResult> ActivateListing([FromRoute] DeleteListingRequestDto request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var listing = await _dbContext.Listings.FirstOrDefaultAsync(l => l.Id == request.ListingId && l.UserId == userGuid && l.Status != ListingStatus.Archived);
+
+        if (listing == null) return NotFound("Listing not found");
+
+        if (listing.Status == ListingStatus.Archived) return NotFound("Listing not found");
+
+        listing.Status = ListingStatus.Active;
+        await _dbContext.SaveChangesAsync();
+
+        return Ok();
+    }
+    [Authorize]
+    [HttpPatch("owned/{ListingId}/deactivate")]
+    public async Task<IActionResult> DeactivateListing([FromRoute] DeleteListingRequestDto request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var listing = await _dbContext.Listings.FirstOrDefaultAsync(l => l.Id == request.ListingId && l.UserId == userGuid && l.Status != ListingStatus.Archived);
+
+        if (listing == null) return NotFound("Listing not found");
+
+        if (listing.Status == ListingStatus.Archived) return NotFound("Listing not found");
+
+        listing.Status = ListingStatus.Inactive;
+        await _dbContext.SaveChangesAsync();
+
+        return Ok();
+    }
 }

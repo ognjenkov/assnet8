@@ -45,6 +45,7 @@ public class AccountController : BaseController
 
         return Ok(new GetAccountInformationResponseDto
         {
+            Id = user.Id,
             Username = user.Username,
             Name = user.Name,
             Email = user.Email,
