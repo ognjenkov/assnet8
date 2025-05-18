@@ -116,6 +116,7 @@ public class TeamsController : BaseController
                                         .Include(t => t.LogoImage)
                                         .Include(t => t.Memberships)
                                         .Include(t => t.LogoImage)
+                                        .Include(t => t.Location)
                                         .OrderByDescending(s => s.CreateDateTime)
                                         .AsQueryable();
 
@@ -366,7 +367,8 @@ public class TeamsController : BaseController
                         Url = Utils.Utils.GenerateImageFrontendLink(m.User.ProfileImage.Id)
                     }
                 }
-            }).ToList()
+            }).ToList(),
+            CreateDateTime = team.CreateDateTime
         });
     }
 
