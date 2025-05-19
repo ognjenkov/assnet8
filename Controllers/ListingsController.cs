@@ -438,8 +438,27 @@ public class ListingsController : BaseController
 
         if (listing == null) return NotFound("Listing not found");
 
+        if (listing.RefreshDateTime.AddHours(48) > DateTime.UtcNow)
+        {
+            return BadRequest("Listing can only be refreshed every 48 hours.");
+        }
+
         listing.RefreshDateTime = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
+
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("listings"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
 
         return Ok();
     }
@@ -458,6 +477,20 @@ public class ListingsController : BaseController
         listing.Status = ListingStatus.Archived;
         await _dbContext.SaveChangesAsync();
 
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("listings"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
         return Ok();
     }
     [Authorize]
@@ -474,8 +507,28 @@ public class ListingsController : BaseController
 
         if (listing.Status == ListingStatus.Archived) return NotFound("Listing not found");
 
+        if (listing.UpdatedAt.AddHours(24) > DateTime.UtcNow)
+        {
+            return BadRequest("Listing can only be updated every 48 hours.");
+        }
+
+        listing.UpdatedAt = DateTime.UtcNow;
         listing.Status = ListingStatus.Active;
         await _dbContext.SaveChangesAsync();
+
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("listings"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
 
         return Ok();
     }
@@ -493,8 +546,28 @@ public class ListingsController : BaseController
 
         if (listing.Status == ListingStatus.Archived) return NotFound("Listing not found");
 
+        if (listing.UpdatedAt.AddHours(24) > DateTime.UtcNow)
+        {
+            return BadRequest("Listing can only be updated every 48 hours.");
+        }
+
+        listing.UpdatedAt = DateTime.UtcNow;
         listing.Status = ListingStatus.Inactive;
         await _dbContext.SaveChangesAsync();
+
+        try
+        {
+            await Task.WhenAll(
+                    _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync("listings"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
 
         return Ok();
     }

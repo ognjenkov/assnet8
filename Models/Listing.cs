@@ -33,6 +33,7 @@ public class Listing
     public Guid Id { get; set; } = Guid.NewGuid();
     public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
     public DateTime RefreshDateTime { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public required ListingType Type { get; set; }
     public ListingCondition? Condition { get; set; }
     public required ListingStatus Status { get; set; } = ListingStatus.Active;
