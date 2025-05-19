@@ -8,8 +8,8 @@ namespace assnet8.Dtos.Listings.Response;
 public class GetListingResponseDto
 {
     public Guid Id { get; set; }
-    public DateTime CreateDateTime { get; set; }
-    public DateTime RefreshDateTime { get; set; }
+    public DateTimeOffset CreateDateTime { get; set; }
+    public DateTimeOffset RefreshDateTime { get; set; }
     public required ListingType Type { get; set; }
     public ListingCondition? Condition { get; set; }
     public required ListingStatus Status { get; set; }

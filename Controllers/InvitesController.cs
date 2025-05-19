@@ -51,8 +51,8 @@ public class InvitesController : BaseController
         {
             Id = invite.Id,
             Accepted = invite.Accepted,
-            CreateDateTime = invite.CreateDateTime,
-            ResponseDateTime = invite.ResponseDateTime,
+            CreateDateTime = new DateTimeOffset(invite.CreateDateTime, TimeSpan.Zero),
+            ResponseDateTime = invite.ResponseDateTime != null ? new DateTimeOffset(invite.ResponseDateTime.Value, TimeSpan.Zero) : null,
             Status = invite.Status,
             Team = invite.Team == null ? null : new TeamSimpleDto
             {
@@ -306,8 +306,8 @@ public class InvitesController : BaseController
         {
             Id = invite.Id,
             Accepted = invite.Accepted,
-            CreateDateTime = invite.CreateDateTime,
-            ResponseDateTime = invite.ResponseDateTime,
+            CreateDateTime = new DateTimeOffset(invite.CreateDateTime, TimeSpan.Zero),
+            ResponseDateTime = invite.ResponseDateTime != null ? new DateTimeOffset(invite.ResponseDateTime.Value, TimeSpan.Zero) : null,
             Status = invite.Status,
             User = invite.User == null ? null : new UserSimpleDto
             {

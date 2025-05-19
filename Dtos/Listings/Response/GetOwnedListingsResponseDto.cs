@@ -7,5 +7,5 @@ namespace assnet8.Dtos.Listings.Response;
 
 public class GetOwnedListingsResponseDto : GetListingsResponseDto
 {
-    public DateTime CreateDateTime { get; set; }
+    public DateTimeOffset CreateDateTime { get; set; }
 }

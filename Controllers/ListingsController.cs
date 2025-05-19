@@ -65,7 +65,7 @@ public class ListingsController : BaseController
         var listingDtos = listings.Select(l => new GetListingsResponseDto
         {
             Id = l.Id,
-            RefreshDateTime = l.RefreshDateTime,
+            RefreshDateTime = new DateTimeOffset(l.RefreshDateTime, TimeSpan.Zero),
             Type = l.Type,
             Condition = l.Condition,
             Status = l.Status,
@@ -125,8 +125,8 @@ public class ListingsController : BaseController
         return Ok(new GetListingResponseDto
         {
             Id = listing.Id,
-            CreateDateTime = listing.CreateDateTime,
-            RefreshDateTime = listing.RefreshDateTime,
+            CreateDateTime = new DateTimeOffset(listing.CreateDateTime, TimeSpan.Zero),
+            RefreshDateTime = new DateTimeOffset(listing.RefreshDateTime, TimeSpan.Zero),
             Type = listing.Type,
             Condition = listing.Condition,
             Status = listing.Status,
@@ -151,7 +151,7 @@ public class ListingsController : BaseController
             Gallery = listing.Gallery == null ? null : new GallerySimpleDto
             {
                 Title = listing.Gallery.Title,
-                CreateDateTime = listing.Gallery.CreateDateTime,
+                CreateDateTime = new DateTimeOffset(listing.Gallery.CreateDateTime, TimeSpan.Zero),
                 Images = listing.Gallery.Images.Select(i => new ImageSimpleDto
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(i.Id)
@@ -223,7 +223,7 @@ public class ListingsController : BaseController
                 var gallery = new Gallery
                 {
                     Title = request.Title,
-                    CreateDateTime = DateTime.Now,
+                    CreateDateTime = DateTime.UtcNow,
                     UserId = user.Id,
                     Listing = listing,
                 };
@@ -398,8 +398,8 @@ public class ListingsController : BaseController
         var listingDtos = listings.Select(l => new GetOwnedListingsResponseDto
         {
             Id = l.Id,
-            RefreshDateTime = l.RefreshDateTime,
-            CreateDateTime = l.CreateDateTime,
+            RefreshDateTime = new DateTimeOffset(l.RefreshDateTime, TimeSpan.Zero),
+            CreateDateTime = new DateTimeOffset(l.CreateDateTime, TimeSpan.Zero),
             Type = l.Type,
             Condition = l.Condition,
             Status = l.Status,
@@ -418,7 +418,7 @@ public class ListingsController : BaseController
             }
         });
 
-        return Ok(new PaginatedResponseDto<GetListingsResponseDto>
+        return Ok(new PaginatedResponseDto<GetOwnedListingsResponseDto>
         {
             PageNumber = request.PageNumber,
             PageSize = request.PageSize,

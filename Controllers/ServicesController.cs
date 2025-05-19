@@ -62,7 +62,7 @@ public class ServicesController : BaseController
         {
             Id = s.Id,
             Title = s.Title,
-            CreatedDateTime = s.CreatedDateTime,
+            CreatedDateTime = new DateTimeOffset(s.CreatedDateTime, TimeSpan.Zero),
             CreatedByUser = s.CreatedByUser == null ? null : new UserSimpleDto
             {
                 Id = s.CreatedByUser.Id,
@@ -167,7 +167,7 @@ public class ServicesController : BaseController
             var gallery = new Gallery
             {
                 Title = request.Title,
-                CreateDateTime = DateTime.Now,
+                CreateDateTime = DateTime.UtcNow,
                 UserId = user.Id,
                 Service = service,
             };
@@ -318,7 +318,7 @@ public class ServicesController : BaseController
             Id = service.Id,
             Title = service.Title,
             Description = service.Description,
-            CreatedDateTime = service.CreatedDateTime,
+            CreatedDateTime = new DateTimeOffset(service.CreatedDateTime, TimeSpan.Zero),
             CreatedByUser = service.CreatedByUser == null ? null : new UserSimpleDto
             {
                 Id = service.CreatedByUser.Id,
@@ -339,7 +339,7 @@ public class ServicesController : BaseController
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(i.Id)
                 }).ToList(),
-                CreateDateTime = service.Gallery.CreateDateTime,
+                CreateDateTime = new DateTimeOffset(service.Gallery.CreateDateTime, TimeSpan.Zero),
             },
             Tags = service.Tags,
             Organization = service.Organization == null ? null : new OrganizationSimpleDto

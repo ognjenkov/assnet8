@@ -315,7 +315,7 @@ public class TeamsController : BaseController
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(i.Id)
                 }).ToList(),
-                CreateDateTime = g.CreateDateTime,
+                CreateDateTime = new DateTimeOffset(g.CreateDateTime, TimeSpan.Zero),
                 User = g.User == null ? null : new UserSimpleDto
                 {
                     Id = g.User.Id,
@@ -356,7 +356,7 @@ public class TeamsController : BaseController
             Memberships = team.Memberships.Select(m => new MembershipSimpleDto
             {
                 Id = m.Id,
-                CreateDateTime = m.CreateDateTime,
+                CreateDateTime = new DateTimeOffset(m.CreateDateTime, TimeSpan.Zero),
                 Roles = [],
                 User = new UserSimpleDto
                 {
@@ -368,7 +368,7 @@ public class TeamsController : BaseController
                     }
                 }
             }).ToList(),
-            CreateDateTime = team.CreateDateTime
+            CreateDateTime = new DateTimeOffset(team.CreateDateTime, TimeSpan.Zero)
         });
     }
 

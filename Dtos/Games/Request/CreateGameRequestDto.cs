@@ -10,7 +10,7 @@ namespace assnet8.Dtos.Games.Request;
 public class CreateGameRequestDto
 {
     public required string Title { get; set; }
-    public required DateTime StartDateTime { get; set; }
+    public required DateTimeOffset StartDateTime { get; set; }
     public string? Description { get; set; }
     public required Guid FieldId { get; set; }
     public Guid[] TagIds { get; set; } = [];

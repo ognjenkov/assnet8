@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
 namespace assnet8.Controllers;
+
 [Authorize]
 [Route("entries")]
 public class EntriesController : BaseController
@@ -38,7 +39,7 @@ public class EntriesController : BaseController
         return Ok(entries.Select(e => new GetGameEntriesResponseDto
         {
             Id = e.Id,
-            CreateDateTime = e.CreateDateTime,
+            CreateDateTime = new DateTimeOffset(e.CreateDateTime, TimeSpan.Zero),
             OpNumber = e.OpNumber,
             RentNumber = e.RentNumber,
             Message = e.Message,

@@ -195,7 +195,7 @@ public class MembershipsController : BaseController
         return Ok(memberships.Select(m => new MembershipSimpleDto
         {
             Id = m.Id,
-            CreateDateTime = m.CreateDateTime,
+            CreateDateTime = new DateTimeOffset(m.CreateDateTime, TimeSpan.Zero),
             Roles = m.Roles,
             User = new UserSimpleDto
             {
@@ -227,7 +227,7 @@ public class MembershipsController : BaseController
         return Ok(new MembershipSimpleDto
         {
             Id = membership.Id,
-            CreateDateTime = membership.CreateDateTime,
+            CreateDateTime = new DateTimeOffset(membership.CreateDateTime, TimeSpan.Zero),
             Roles = membership.Roles,
             User = new UserSimpleDto
             {

@@ -4,10 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace assnet8.Dtos.Simple;
+
 public class MembershipSimpleDto
 {
     public required Guid Id { get; set; }
-    public DateTime CreateDateTime { get; set; }
+    public DateTimeOffset CreateDateTime { get; set; }
     public List<Role> Roles { get; set; } = [];
     public TeamSimpleDto? Team { get; set; }
     public UserSimpleDto? User { get; set; }
@@ -25,7 +26,7 @@ public class ImageSimpleDto
 public class ListingSimpleDto
 {
     public required Guid Id { get; set; }
-    public DateTime RefreshDateTime { get; set; }
+    public DateTimeOffset RefreshDateTime { get; set; }
     public required ListingStatus Status { get; set; }
     public required string Title { get; set; }
     public ImageSimpleDto? ThumbnailImage { get; set; }
@@ -53,13 +54,13 @@ public class GameSimpleDto
 {
     public required Guid Id { get; set; }
     public required string Title { get; set; }
-    public DateTime StartDateTime { get; set; }
+    public DateTimeOffset StartDateTime { get; set; }
 }
 public class ServiceSimpleDto
 {
     public required Guid Id { get; set; }
     public required string Title { get; set; }
-    public DateTime CreatedDateTime { get; set; }
+    public DateTimeOffset CreatedDateTime { get; set; }
     public ImageSimpleDto? ThumbnailImage { get; set; }
 }
 public class OrganizationSimpleDto
@@ -71,7 +72,7 @@ public class OrganizationSimpleDto
 public class GallerySimpleDto
 {
     public required string Title { get; set; }
-    public DateTime CreateDateTime { get; set; }
+    public DateTimeOffset CreateDateTime { get; set; }
     public UserSimpleDto? User { get; set; }
     public List<ImageSimpleDto> Images { get; set; } = [];
 }

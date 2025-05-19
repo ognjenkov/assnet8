@@ -9,7 +9,7 @@ public class GetOrganizationInformationResponseDto
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }
-    public DateTime CreateDateTime { get; set; }
+    public DateTimeOffset CreateDateTime { get; set; }
     public ImageSimpleDto? LogoImage { get; set; }
     public TeamSimpleDto? Team { get; set; }
     public List<FieldSimpleDto> Fields { get; set; } = [];

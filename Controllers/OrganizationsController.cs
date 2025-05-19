@@ -238,7 +238,7 @@ public class OrganizationsController : BaseController
         {
             Id = organization.Id,
             Name = organization.Name,
-            CreateDateTime = organization.CreateDateTime,
+            CreateDateTime = new DateTimeOffset(organization.CreateDateTime, TimeSpan.Zero),
             LogoImage = organization.LogoImage == null ? null : new ImageSimpleDto
             {
                 Url = Utils.Utils.GenerateImageFrontendLink(organization.LogoImage.Id)
@@ -257,7 +257,7 @@ public class OrganizationsController : BaseController
             {
                 Id = g.Id,
                 Title = g.Title,
-                StartDateTime = g.StartDateTime
+                StartDateTime = new DateTimeOffset(g.StartDateTime, TimeSpan.Zero)
             }).ToList(),
             Services = organization.Services.Select(s => new ServiceSimpleDto
             {

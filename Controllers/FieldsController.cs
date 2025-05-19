@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace assnet8.Controllers;
+
 [Route("fields")]
 public class FieldsController : BaseController
 {
@@ -204,7 +205,7 @@ public class FieldsController : BaseController
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(i.Id)
                 }).ToList(),
-                CreateDateTime = field.Gallery.CreateDateTime,
+                CreateDateTime = new DateTimeOffset(field.Gallery.CreateDateTime, TimeSpan.Zero),
                 User = field.Gallery.User == null ? null : new UserSimpleDto
                 {
                     Id = field.Gallery.User.Id,
@@ -219,7 +220,7 @@ public class FieldsController : BaseController
             {
                 Id = g.Id,
                 Title = g.Title,
-                StartDateTime = g.StartDateTime,
+                StartDateTime = new DateTimeOffset(g.StartDateTime, TimeSpan.Zero),
             }).ToList() ?? [],
         });
     }
@@ -279,7 +280,7 @@ public class FieldsController : BaseController
             var gallery = new Gallery
             {
                 Title = request.Name,
-                CreateDateTime = DateTime.Now,
+                CreateDateTime = DateTime.UtcNow,
                 UserId = user.Id,
                 Field = field,
             };

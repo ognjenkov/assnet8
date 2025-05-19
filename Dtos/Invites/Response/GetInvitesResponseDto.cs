@@ -12,8 +12,8 @@ public class GetInvitesResponseDto
     public UserSimpleDto? User { get; set; }
     public bool Accepted { get; set; } = false;
     public required InviteStatus Status { get; set; }
-    public required DateTime CreateDateTime { get; set; }
-    public DateTime? ResponseDateTime { get; set; } = null;
+    public required DateTimeOffset CreateDateTime { get; set; }
+    public DateTimeOffset? ResponseDateTime { get; set; } = null;
     public Guid CreatedById { get; set; }
     public required bool ShouldRefresh { get; set; }
 }

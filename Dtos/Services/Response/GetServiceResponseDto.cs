@@ -10,7 +10,7 @@ public class GetServiceResponseDto
     public Guid Id { get; set; } = Guid.NewGuid();
     public required string Title { get; set; }
     public required string Description { get; set; }
-    public DateTime CreatedDateTime { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset CreatedDateTime { get; set; }
     public UserSimpleDto? CreatedByUser { get; set; }
     public GallerySimpleDto? Gallery { get; set; }
     public ImageSimpleDto? ThumbnailImage { get; set; }

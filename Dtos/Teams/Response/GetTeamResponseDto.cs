@@ -9,7 +9,7 @@ public class GetTeamResponseDto
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }
-    public DateTime CreateDateTime { get; set; }
+    public DateTimeOffset CreateDateTime { get; set; }
     public List<GallerySimpleDto> Galleries { get; set; } = [];
     public OrganizationSimpleDto? Organization { get; set; }
     public UserSimpleDto? Creator { get; set; }

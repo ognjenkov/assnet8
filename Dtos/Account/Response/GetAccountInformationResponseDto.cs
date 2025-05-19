@@ -12,7 +12,7 @@ public class GetAccountInformationResponseDto
     public required string Name { get; set; }
     public required string Email { get; set; }
     public bool VerifiedEmail { get; set; }
-    public DateTime CreateDateTime { get; set; }
+    public DateTimeOffset CreateDateTime { get; set; }
     public List<ListingSimpleDto>? Listings { get; set; }
     public int EntriesNumber { get; set; }
     public ImageSimpleDto? ProfileImage { get; set; }

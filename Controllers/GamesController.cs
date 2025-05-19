@@ -63,8 +63,8 @@ public class GamesController : BaseController
         {
             Id = g.Id,
             Title = g.Title,
-            CreateDateTime = g.CreateDateTime,
-            StartDateTime = g.StartDateTime,
+            CreateDateTime = new DateTimeOffset(g.CreateDateTime, TimeSpan.Zero),
+            StartDateTime = new DateTimeOffset(g.StartDateTime, TimeSpan.Zero),
             Organization = g.Organization == null ? null : new OrganizationSimpleDto
             {
                 Id = g.Organization.Id,
@@ -134,8 +134,8 @@ public class GamesController : BaseController
         {
             Id = game.Id,
             Title = game.Title,
-            CreateDateTime = game.CreateDateTime,
-            StartDateTime = game.StartDateTime,
+            CreateDateTime = new DateTimeOffset(game.CreateDateTime, TimeSpan.Zero),
+            StartDateTime = new DateTimeOffset(game.StartDateTime, TimeSpan.Zero),
             Description = game.Description,
             Organization = game.Organization == null ? null : new OrganizationSimpleDto
             {
@@ -199,7 +199,7 @@ public class GamesController : BaseController
         var game = new Game
         {
             Title = request.Title,
-            StartDateTime = request.StartDateTime,
+            StartDateTime = request.StartDateTime.UtcDateTime,
             Description = request.Description,
             FieldId = request.FieldId,
             OrganizationId = (Guid)organizationId,

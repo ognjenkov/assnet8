@@ -50,11 +50,11 @@ public class AccountController : BaseController
             Name = user.Name,
             Email = user.Email,
             VerifiedEmail = user.VerifiedEmail,
-            CreateDateTime = user.CreateDateTime,
+            CreateDateTime = new DateTimeOffset(user.CreateDateTime, TimeSpan.Zero),
             Listings = user.Listings?.Select(l => new ListingSimpleDto
             {
                 Id = l.Id,
-                RefreshDateTime = l.RefreshDateTime,
+                RefreshDateTime = new DateTimeOffset(l.RefreshDateTime, TimeSpan.Zero),
                 Status = l.Status,
                 Title = l.Title,
                 ThumbnailImage = l.ThumbnailImage == null ? null : new ImageSimpleDto
@@ -70,7 +70,7 @@ public class AccountController : BaseController
             Membership = user.Membership == null ? null : new MembershipSimpleDto
             {
                 Id = user.Membership.Id,
-                CreateDateTime = user.Membership.CreateDateTime,
+                CreateDateTime = new DateTimeOffset(user.Membership.CreateDateTime, TimeSpan.Zero),
                 Roles = user.Membership.Roles,
                 Team = new TeamSimpleDto
                 {
@@ -108,7 +108,7 @@ public class AccountController : BaseController
         {
             Id = organization.Id,
             Name = organization.Name,
-            CreateDateTime = organization.CreateDateTime,
+            CreateDateTime = new DateTimeOffset(organization.CreateDateTime, TimeSpan.Zero),
             LogoImage = organization.LogoImage == null ? null : new ImageSimpleDto
             {
                 Url = Utils.Utils.GenerateImageFrontendLink(organization.LogoImage.Id)
@@ -141,13 +141,13 @@ public class AccountController : BaseController
             {
                 Id = g.Id,
                 Title = g.Title ?? "No title",
-                StartDateTime = g.StartDateTime,
+                StartDateTime = new DateTimeOffset(g.StartDateTime, TimeSpan.Zero),
             }).ToList() ?? [],
             Services = organization.Services?.Select(s => new ServiceSimpleDto
             {
                 Id = s.Id,
                 Title = s.Title,
-                CreatedDateTime = s.CreatedDateTime,
+                CreatedDateTime = new DateTimeOffset(s.CreatedDateTime, TimeSpan.Zero),
                 ThumbnailImage = s.ThumbnailImage == null ? null : new ImageSimpleDto
                 {
                     Url = Utils.Utils.GenerateImageFrontendLink(s.ThumbnailImage.Id)
@@ -183,7 +183,7 @@ public class AccountController : BaseController
         {
             Id = team.Id,
             Name = team.Name,
-            CreateDateTime = team.CreateDateTime,
+            CreateDateTime = new DateTimeOffset(team.CreateDateTime, TimeSpan.Zero),
             Creator = new UserSimpleDto
             {
                 Id = team.CreatorId,
@@ -200,7 +200,7 @@ public class AccountController : BaseController
             Memberships = team.Memberships.Select(m => new MembershipSimpleDto
             {
                 Id = m.Id,
-                CreateDateTime = m.CreateDateTime,
+                CreateDateTime = new DateTimeOffset(m.CreateDateTime, TimeSpan.Zero),
                 Roles = m.Roles,
                 User = new UserSimpleDto
                 {
@@ -219,7 +219,7 @@ public class AccountController : BaseController
             },
             Galleries = team.Galleries?.Select(g => new GallerySimpleDto
             {
-                CreateDateTime = g.CreateDateTime,
+                CreateDateTime = new DateTimeOffset(g.CreateDateTime, TimeSpan.Zero),
                 Title = g.Title,
                 User = new UserSimpleDto
                 {
