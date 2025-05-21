@@ -11,6 +11,7 @@ using assnet8.Services.Images;
 using assnet8.Services.Utils;
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace assnet8.Controllers;
@@ -22,11 +23,13 @@ public class AccountController : BaseController
     private readonly IAccountService _accountService;
     private readonly ICloudImageService _imageService;
     private readonly INextJsRevalidationService _nextJsRevalidationService;
-    public AccountController(IAccountService accountService, ICloudImageService imageService, INextJsRevalidationService nextJsRevalidationService)
+    private readonly AppDbContext _dbContext;
+    public AccountController(IAccountService accountService, ICloudImageService imageService, INextJsRevalidationService nextJsRevalidationService, AppDbContext dbContext)
     {
         this._accountService = accountService;
         this._imageService = imageService;
         this._nextJsRevalidationService = nextJsRevalidationService;
+        this._dbContext = dbContext;
     }
 
     [HttpGet("account-information")]
@@ -51,17 +54,6 @@ public class AccountController : BaseController
             Email = user.Email,
             VerifiedEmail = user.VerifiedEmail,
             CreateDateTime = new DateTimeOffset(user.CreateDateTime, TimeSpan.Zero),
-            Listings = user.Listings?.Select(l => new ListingSimpleDto
-            {
-                Id = l.Id,
-                RefreshDateTime = new DateTimeOffset(l.RefreshDateTime, TimeSpan.Zero),
-                Status = l.Status,
-                Title = l.Title,
-                ThumbnailImage = l.ThumbnailImage == null ? null : new ImageSimpleDto
-                {
-                    Url = Utils.Utils.GenerateImageFrontendLink(l.ThumbnailImage.Id)
-                },
-            }).ToList(),
             EntriesNumber = user.Entries.Count,
             ProfileImage = user.ProfileImage == null ? null : new ImageSimpleDto
             {
@@ -239,20 +231,166 @@ public class AccountController : BaseController
     [HttpDelete]
     public async Task<IActionResult> DeleteAccount()
     {
-        // organicenja, ako je u timu, ako je u organizaciji, 
-        // TODO revalidate user i revalidate membership i revalidate organization
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
-        await _nextJsRevalidationService.RevalidateTagAsync("user-id");
+        var user = await _dbContext.Users
+        .AsSplitQuery()
+        .Include(u => u.ProfileImage)
+        .Include(u => u.Listings)
+            .ThenInclude(l => l.Gallery)
+                .ThenInclude(g => g!.Images)
+        .Include(u => u.Listings)
+            .ThenInclude(l => l.ThumbnailImage)
+        .Include(u => u.Entries)
+        .Include(u => u.Membership)
+        .Include(u => u.Organization)
+        .FirstOrDefaultAsync(u => u.Id == userGuid);
+
+        if (user == null) return NotFound("User not found");
+        if (user.Membership != null) return Unauthorized("User is a member of a team");
+        if (user.Organization != null) return Unauthorized("User is an organization member");
+
+        _dbContext.Entries.RemoveRange(user.Entries);
+
+        foreach (var listing in user.Listings)
+        {
+            if (listing.ThumbnailImage != null)
+            {
+                await _imageService.DeleteImage(listing.ThumbnailImage);
+            }
+
+            if (listing.Gallery != null)
+            {
+                foreach (var image in listing.Gallery.Images)
+                {
+                    await _imageService.DeleteImage(image);
+                }
+
+                _dbContext.Galleries.Remove(listing.Gallery);
+            }
+            try
+            {
+                await Task.WhenAll(
+                        _nextJsRevalidationService.RevalidatePathAsync($"/market/{listing.Id}"),
+                        _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}-simple"),
+                        _nextJsRevalidationService.RevalidateTagAsync($"listing-{listing.Id}")
+                    );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+        await _dbContext.SaveChangesAsync();
+        await _nextJsRevalidationService.RevalidateTagAsync("listings");
+
+
+        try
+        {
+            _dbContext.Users.Remove(user);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            return BadRequest("User cannot be deleted due to existing references.");
+        }
+
+        if (user.ProfileImage != null)
+        {
+            await _imageService.DeleteImage(user.ProfileImage);
+        }
+        await _dbContext.SaveChangesAsync();
+
+        try
+        {
+            await Task.WhenAll(
+                     _nextJsRevalidationService.RevalidateTagAsync($"user-{user.Id}"),
+                    _nextJsRevalidationService.RevalidateTagAsync($"user-{user.Id}-simple")
+                );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
         return Ok("Account deleted");
     }
 
-    [HttpPatch]
-    public async Task<IActionResult> UpdateAccount()
+    [HttpPost("update")]
+    public async Task<IActionResult> UpdateAccount([FromForm] UpdateAccountRequestDto request)
     {
-        // ovde ne moze da se promeni da li je u org, da li je u timu, rolovi itd...
-        // ovde cu pustiti bazu da mi baca errore
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
 
-        await _nextJsRevalidationService.RevalidateTagAsync("user-id");
+        var user = await _dbContext.Users
+                                    .Include(u => u.ProfileImage)
+                                    .FirstOrDefaultAsync(u => u.Id == userGuid);
+        if (user == null) return NotFound("User not found");
+
+        if (user.Username == request.Username && user.Name == request.Name && request.ProfileImage == null) return Ok("No changes");
+
+        if (user.Username != request.Username)
+        {
+            if (await _dbContext.Users.AnyAsync(u => u.Username == request.Username))
+            {
+                return BadRequest("Username already taken");
+            }
+            user.Username = request.Username;
+        }
+        user.Name = request.Name;
+
+        if (request.ProfileImage != null)
+        {
+            try
+            {
+                if (user.ProfileImage != null)
+                {
+                    await _imageService.DeleteImage(user.ProfileImage);
+
+                }
+                var image = await _imageService.UploadImage(user, request.ProfileImage);
+                await _dbContext.Images.AddAsync(image);
+
+                user.ProfileImageId = image.Id;
+
+            }
+            catch (System.Exception)
+            {
+                System.Console.WriteLine("Failed to upload profile image");
+                // throw;
+            }
+        }
+        await _dbContext.SaveChangesAsync();
+
+        await _nextJsRevalidationService.RevalidateTagAsync($"user-{user.Id}");
+        await _nextJsRevalidationService.RevalidateTagAsync($"user-{user.Id}-simple");
         return Ok("Update account");
+    }
+
+    [HttpPost("password")]
+    public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequestDto request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        if (!Guid.TryParse(userId, out var userGuid)) return Unauthorized();
+
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userGuid);
+        if (user == null) return Unauthorized();
+
+        var passwordHasher = new PasswordHasher<string>();
+
+        if (passwordHasher.VerifyHashedPassword("", user.Password, request.OldPassword) == PasswordVerificationResult.Failed)
+        {
+            return Unauthorized(new { message = "Invalid password" });
+        }
+
+        string hashedPassword = passwordHasher.HashPassword("", request.NewPassword);
+
+        user.Password = hashedPassword;
+        await _dbContext.SaveChangesAsync();
+
+        return Ok("Update password");
     }
 }

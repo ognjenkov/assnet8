@@ -166,7 +166,7 @@ public class OrganizationsController : BaseController
         }
         catch (DbUpdateException)
         {
-            return BadRequest("Field cannot be deleted due to existing references. Try deleting games first.");
+            return BadRequest("Organization cannot be deleted due to existing references.");
         }
 
         if (organization.LogoImage != null)
